@@ -1,0 +1,7 @@
+node_modules
+.next
+out
+coverage
+src/generated
+AGENTS.md
+design_system.md

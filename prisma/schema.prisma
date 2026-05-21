@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PostType {
+  discussion
+  critique
+  showcase
+  help
+  resource
+}
+
+enum VoteTargetType {
+  post
+  comment
+}
+
+enum VoteType {
+  up
+  down
+}
+
+model Profile {
+  id                String            @id @db.Uuid
+  username          String            @unique @db.VarChar(32)
+  avatarUrl         String?           @map("avatar_url")
+  bio               String?           @db.VarChar(300)
+  primaryDiscipline String?           @map("primary_discipline") @db.VarChar(64)
+  reputation        Int               @default(0)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  posts             Post[]
+  comments          Comment[]
+  votes             Vote[]
+  profileSoftwares  ProfileSoftware[]
+
+  @@index([reputation], map: "idx_profiles_reputation")
+  @@map("profiles")
+}
+
+model Discipline {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique @db.VarChar(64)
+  slug      String     @unique @db.VarChar(64)
+  createdAt DateTime   @default(now()) @map("created_at")
+  softwares Software[]
+  posts     Post[]
+
+  @@map("disciplines")
+}
+
+model Software {
+  id               Int               @id @default(autoincrement())
+  name             String            @db.VarChar(64)
+  slug             String            @db.VarChar(64)
+  disciplineId     Int               @map("discipline_id")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  discipline       Discipline        @relation(fields: [disciplineId], references: [id], onDelete: Restrict)
+  posts            Post[]
+  profileSoftwares ProfileSoftware[]
+
+  @@unique([disciplineId, slug], map: "uq_softwares_discipline_slug")
+  @@index([disciplineId], map: "idx_softwares_discipline_id")
+  @@map("softwares")
+}
+
+model ProfileSoftware {
+  profileId  String   @map("profile_id") @db.Uuid
+  softwareId Int      @map("software_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  software   Software @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, softwareId])
+  @@index([softwareId], map: "idx_profile_softwares_software_id")
+  @@map("profile_softwares")
+}
+
+model Post {
+  id                  String       @id @default(uuid()) @db.Uuid
+  slug                String       @unique @db.VarChar(180)
+  title               String       @db.VarChar(180)
+  body                String?
+  postType            PostType     @map("post_type")
+  authorId            String       @map("author_id") @db.Uuid
+  disciplineId        Int          @map("discipline_id")
+  softwareId          Int?         @map("software_id")
+  voteCount           Int          @default(0) @map("vote_count")
+  commentCount        Int          @default(0) @map("comment_count")
+  viewCount           Int          @default(0) @map("view_count")
+  isSolved            Boolean      @default(false) @map("is_solved")
+  acceptedCommentId   String?      @unique @map("accepted_comment_id") @db.Uuid
+  context             String?
+  projectDescription  String?      @map("project_description")
+  challengeStatement  String?      @map("challenge_statement")
+  feedbackRequested   String?      @map("feedback_requested")
+  projectSummary      String?      @map("project_summary")
+  toolsUsed           Json?        @map("tools_used")
+  projectLink         String?      @map("project_link")
+  issueDescription    String?      @map("issue_description")
+  errorContext        String?      @map("error_context")
+  resourceExplanation String?      @map("resource_explanation")
+  resourceLinks       Json?        @map("resource_links")
+  createdAt           DateTime     @default(now()) @map("created_at")
+  updatedAt           DateTime     @updatedAt @map("updated_at")
+  author              Profile      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  discipline          Discipline   @relation(fields: [disciplineId], references: [id], onDelete: Restrict)
+  software            Software?    @relation(fields: [softwareId], references: [id], onDelete: SetNull)
+  attachments         Attachment[]
+  comments            Comment[]
+  postTags            PostTag[]
+  votes               Vote[]
+  acceptedComment     Comment?     @relation("AcceptedComment", fields: [acceptedCommentId], references: [id], onDelete: SetNull)
+
+  @@index([postType, createdAt(sort: Desc)], map: "idx_posts_type_created_at")
+  @@index([disciplineId, postType, createdAt(sort: Desc)], map: "idx_posts_discipline_type_created_at")
+  @@index([softwareId, postType, createdAt(sort: Desc)], map: "idx_posts_software_type_created_at")
+  @@index([isSolved, postType], map: "idx_posts_is_solved_post_type")
+  @@index([authorId, createdAt(sort: Desc)], map: "idx_posts_author_created_at")
+  @@map("posts")
+}
+
+model Attachment {
+  id        String   @id @default(uuid()) @db.Uuid
+  postId    String   @map("post_id") @db.Uuid
+  key       String   @db.VarChar(255)
+  url       String   @db.VarChar(500)
+  mimeType  String   @map("mime_type") @db.VarChar(120)
+  size      BigInt
+  createdAt DateTime @default(now()) @map("created_at")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId], map: "idx_attachments_post_id")
+  @@map("attachments")
+}
+
+model Comment {
+  id         String   @id @default(uuid()) @db.Uuid
+  postId     String   @map("post_id") @db.Uuid
+  authorId   String   @map("author_id") @db.Uuid
+  body       String
+  voteCount  Int      @default(0) @map("vote_count")
+  isSolution Boolean  @default(false) @map("is_solution")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author     Profile  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  votes      Vote[]
+  acceptedBy Post?    @relation("AcceptedComment")
+
+  @@index([postId, createdAt], map: "idx_comments_post_created_at")
+  @@index([authorId, createdAt(sort: Desc)], map: "idx_comments_author_created_at")
+  @@index([isSolution], map: "idx_comments_is_solution")
+  @@map("comments")
+}
+
+model Tag {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique @db.VarChar(64)
+  slug      String    @unique @db.VarChar(64)
+  createdAt DateTime  @default(now()) @map("created_at")
+  postTags  PostTag[]
+
+  @@map("tags")
+}
+
+model PostTag {
+  postId    String   @map("post_id") @db.Uuid
+  tagId     Int      @map("tag_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@index([tagId], map: "idx_post_tags_tag_id")
+  @@map("post_tags")
+}
+
+model Vote {
+  id         String         @id @default(uuid()) @db.Uuid
+  authorId   String         @map("author_id") @db.Uuid
+  targetType VoteTargetType @map("target_type")
+  postId     String?        @map("post_id") @db.Uuid
+  commentId  String?        @map("comment_id") @db.Uuid
+  voteType   VoteType       @default(up) @map("vote_type")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  author     Profile        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  post       Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment    Comment?       @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([authorId, postId], map: "uq_votes_author_post")
+  @@unique([authorId, commentId], map: "uq_votes_author_comment")
+  @@index([postId], map: "idx_votes_post_id")
+  @@index([commentId], map: "idx_votes_comment_id")
+  @@index([authorId], map: "idx_votes_author_id")
+  @@index([targetType, createdAt(sort: Desc)], map: "idx_votes_target_type_created_at")
+  @@map("votes")
+}
