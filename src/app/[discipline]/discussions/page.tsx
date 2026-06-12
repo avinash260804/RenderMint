@@ -12,12 +12,13 @@ export async function generateStaticParams() {
   return disciplines.map((discipline) => ({ discipline: discipline.slug }));
 }
 
-export default async function DisciplineDiscussionsPage({
-  params,
-}: {
-  params: { discipline: string };
-}) {
-  const { discipline, posts } = await getDisciplineFeed(params.discipline, "discussion");
+type DisciplinePageProps = {
+  params: Promise<{ discipline: string }> | { discipline: string };
+};
+
+export default async function DisciplineDiscussionsPage({ params }: DisciplinePageProps) {
+  const { discipline: disciplineSlug } = await params;
+  const { discipline, posts } = await getDisciplineFeed(disciplineSlug, "discussion");
   if (!discipline) notFound();
 
   return (

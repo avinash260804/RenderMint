@@ -1,4 +1,26 @@
 -- Phase 3: auth + onboarding schema additions
+-- Prisma shadow databases do not include Supabase's auth schema.
+-- Create a no-op auth.uid() only when the real Supabase helper is absent.
+CREATE SCHEMA IF NOT EXISTS "auth";
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_proc p
+    JOIN pg_namespace n ON n.oid = p.pronamespace
+    WHERE n.nspname = 'auth'
+      AND p.proname = 'uid'
+      AND pg_get_function_identity_arguments(p.oid) = ''
+  ) THEN
+    CREATE FUNCTION "auth"."uid"()
+    RETURNS uuid
+    LANGUAGE sql
+    STABLE
+    AS 'SELECT NULL::uuid';
+  END IF;
+END
+$$;
 
 CREATE TABLE "profile_softwares" (
   "profile_id" UUID NOT NULL,

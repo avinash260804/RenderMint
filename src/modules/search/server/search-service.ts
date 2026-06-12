@@ -1,109 +1,97 @@
-import { communityPosts } from "@/lib/mock/community-data";
-import {
-  type SearchQuery,
-  type SearchResultItem,
-  validDisciplines,
-} from "@/modules/search/schemas/search-schema";
+import { Prisma } from "@prisma/client";
 
-const globalSearchCache = globalThis as unknown as {
-  sprintSearchCache?: Map<string, { expiresAt: number; payload: ReturnType<typeof performSearch> }>;
+import { canAttemptDatabaseQuery } from "@/lib/db/availability";
+import type { SearchQuery, SearchResultItem } from "@/modules/search/schemas/search-schema";
+import { prisma } from "@/server/db/client";
+
+type SearchPayload = {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: SearchResultItem[];
 };
 
-const searchCache = globalSearchCache.sprintSearchCache ?? new Map();
-if (!globalSearchCache.sprintSearchCache) {
-  globalSearchCache.sprintSearchCache = searchCache;
-}
+type SearchPostRecord = Prisma.PostGetPayload<{
+  include: {
+    discipline: {
+      select: {
+        slug: true;
+      };
+    };
+    software: {
+      select: {
+        name: true;
+      };
+    };
+    postTags: {
+      include: {
+        tag: true;
+      };
+    };
+  };
+}>;
 
-const SEARCH_TTL_MS = 60 * 1000;
+const MAX_SEARCH_CANDIDATES = 200;
 
-export function searchPosts(query: SearchQuery) {
-  const cacheKey = JSON.stringify(query);
-  const now = Date.now();
-  const cached = searchCache.get(cacheKey);
-
-  if (cached && cached.expiresAt > now) {
-    return cached.payload;
+export async function searchPosts(query: SearchQuery): Promise<SearchPayload> {
+  if (!(await canAttemptDatabaseQuery())) {
+    return emptySearchPayload(query);
   }
 
-  const payload = performSearch(query);
-  searchCache.set(cacheKey, {
-    expiresAt: now + SEARCH_TTL_MS,
-    payload,
-  });
-
-  return payload;
+  try {
+    return await performDatabaseSearch(query);
+  } catch {
+    return emptySearchPayload(query);
+  }
 }
 
-function performSearch(query: SearchQuery) {
+async function performDatabaseSearch(query: SearchQuery): Promise<SearchPayload> {
   const queryText = (query.q ?? "").toLowerCase();
-  const tokens = queryText
-    .split(/\s+/)
-    .map((token) => token.trim())
-    .filter(Boolean);
+  const tokens = tokenize(queryText);
+  const textFilters = buildTextFilters(tokens);
 
-  const filtered = communityPosts.filter((post) => {
-    if (
-      query.discipline &&
-      validDisciplines.has(query.discipline) &&
-      post.discipline !== query.discipline
-    ) {
-      return false;
-    }
-
-    if (query.software && (post.software ?? "").toLowerCase() !== query.software.toLowerCase()) {
-      return false;
-    }
-
-    if (query.postType && post.type !== query.postType) {
-      return false;
-    }
-
-    if (query.solved === "true" && !(post.type === "help" && post.solved)) {
-      return false;
-    }
-
-    if (query.solved === "false" && post.type === "help" && post.solved) {
-      return false;
-    }
-
-    return true;
+  const posts = await prisma.post.findMany({
+    where: {
+      deletedAt: null,
+      ...(query.discipline ? { discipline: { slug: query.discipline } } : {}),
+      ...(query.software
+        ? {
+            software: {
+              OR: [
+                { slug: normalizeSlug(query.software) },
+                { name: { equals: query.software, mode: "insensitive" } },
+              ],
+            },
+          }
+        : {}),
+      ...(query.postType ? { postType: query.postType } : {}),
+      ...(query.solved === "true" ? { postType: "help", isSolved: true } : {}),
+      ...(query.solved === "false" ? { OR: [{ postType: { not: "help" } }, { isSolved: false }] } : {}),
+      ...(textFilters.length > 0 ? { OR: textFilters } : {}),
+    } as never,
+    include: {
+      discipline: {
+        select: {
+          slug: true,
+        },
+      },
+      software: {
+        select: {
+          name: true,
+        },
+      },
+      postTags: {
+        include: {
+          tag: true,
+        },
+      },
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: MAX_SEARCH_CANDIDATES,
   });
 
-  const scored: SearchResultItem[] = filtered
-    .map((post) => {
-      const bodyPreview = post.bodyPreview ?? "";
-      const searchable = [
-        post.title,
-        bodyPreview,
-        post.discipline,
-        post.software ?? "",
-        post.type,
-        ...(post.tags ?? []),
-      ]
-        .join(" ")
-        .toLowerCase();
-
-      const relevance = scoreRelevance(tokens, searchable, post.title.toLowerCase());
-      const solvedBoost = post.type === "help" && post.solved ? 20 : 0;
-      const engagementBoost =
-        (post.replyCount ?? 0) + (post.answerCount ?? 0) + (post.iterationCount ?? 0);
-      const freshnessBoost = scoreFreshness(post.createdAt);
-      const score = relevance + solvedBoost + engagementBoost + freshnessBoost;
-
-      return {
-        id: post.id,
-        slug: post.slug,
-        title: post.title,
-        discipline: post.discipline,
-        software: post.software,
-        postType: post.type,
-        solved: Boolean(post.solved),
-        tags: post.tags ?? [],
-        bodyPreview,
-        score,
-        createdAt: post.createdAt,
-      };
-    })
+  const scored = posts
+    .map((post) => mapPostToSearchResult(post, tokens))
     .filter((post) => (tokens.length === 0 ? true : post.score > 0));
 
   scored.sort((a, b) => {
@@ -123,6 +111,125 @@ function performSearch(query: SearchQuery) {
   };
 }
 
+function buildTextFilters(tokens: string[]): Prisma.PostWhereInput[] {
+  if (tokens.length === 0) return [];
+
+  const fields: Array<keyof Prisma.PostWhereInput> = [
+    "title",
+    "body",
+    "context",
+    "projectDescription",
+    "challengeStatement",
+    "feedbackRequested",
+    "projectSummary",
+    "issueDescription",
+    "errorContext",
+    "resourceExplanation",
+  ];
+
+  return tokens.flatMap((token) => [
+    ...fields.map((field) => ({
+      [field]: {
+        contains: token,
+        mode: "insensitive",
+      },
+    })),
+    {
+      discipline: {
+        OR: [
+          { slug: { contains: token, mode: "insensitive" } },
+          { name: { contains: token, mode: "insensitive" } },
+        ],
+      },
+    },
+    {
+      software: {
+        OR: [
+          { slug: { contains: token, mode: "insensitive" } },
+          { name: { contains: token, mode: "insensitive" } },
+        ],
+      },
+    },
+    {
+      postTags: {
+        some: {
+          tag: {
+            OR: [
+              { slug: { contains: token, mode: "insensitive" } },
+              { name: { contains: token, mode: "insensitive" } },
+            ],
+          },
+        },
+      },
+    },
+  ]) as Prisma.PostWhereInput[];
+}
+
+function mapPostToSearchResult(post: SearchPostRecord, tokens: string[]): SearchResultItem {
+  const bodyPreview = createBodyPreview(
+    post.body ??
+      post.issueDescription ??
+      post.projectSummary ??
+      post.projectDescription ??
+      post.resourceExplanation ??
+      post.context,
+  );
+  const tags = post.postTags.map((entry) => entry.tag.slug);
+  const searchable = [
+    post.title,
+    post.body ?? "",
+    post.context ?? "",
+    post.projectDescription ?? "",
+    post.challengeStatement ?? "",
+    post.feedbackRequested ?? "",
+    post.projectSummary ?? "",
+    post.issueDescription ?? "",
+    post.errorContext ?? "",
+    post.resourceExplanation ?? "",
+    post.discipline.slug,
+    post.software?.name ?? "",
+    post.postType,
+    ...tags,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const relevance = scoreRelevance(tokens, searchable, post.title.toLowerCase());
+  const solvedBoost = post.postType === "help" && post.isSolved ? 20 : 0;
+  const engagementBoost = post.commentCount + post.voteCount + Math.floor(post.viewCount / 10);
+  const freshnessBoost = scoreFreshness(post.createdAt);
+
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    discipline: post.discipline.slug,
+    software: post.software?.name ?? undefined,
+    postType: post.postType,
+    solved: post.isSolved,
+    tags,
+    bodyPreview,
+    score: relevance + solvedBoost + engagementBoost + freshnessBoost,
+    createdAt: post.createdAt.toISOString(),
+  };
+}
+
+function emptySearchPayload(query: SearchQuery): SearchPayload {
+  return {
+    total: 0,
+    page: query.page,
+    pageSize: query.pageSize,
+    items: [],
+  };
+}
+
+function tokenize(value: string) {
+  return value
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+}
+
 function scoreRelevance(tokens: string[], searchable: string, title: string) {
   if (tokens.length === 0) return 0;
 
@@ -135,12 +242,22 @@ function scoreRelevance(tokens: string[], searchable: string, title: string) {
   return score;
 }
 
-function scoreFreshness(createdAt: string) {
+function scoreFreshness(createdAt: Date) {
   const now = Date.now();
-  const createdAtMs = Date.parse(createdAt);
-
-  if (Number.isNaN(createdAtMs)) return 0;
-
-  const ageDays = Math.max(0, (now - createdAtMs) / (1000 * 60 * 60 * 24));
+  const ageDays = Math.max(0, (now - createdAt.getTime()) / (1000 * 60 * 60 * 24));
   return Math.max(0, 15 - ageDays);
+}
+
+function createBodyPreview(value: string | null | undefined) {
+  if (!value) return "";
+  return value.length > 180 ? `${value.slice(0, 177)}...` : value;
+}
+
+function normalizeSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 }

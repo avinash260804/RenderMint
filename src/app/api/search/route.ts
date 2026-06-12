@@ -4,6 +4,8 @@ import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-erro
 import { searchPosts } from "@/modules/search/server/search-service";
 import { searchQuerySchema } from "@/modules/search/schemas/search-schema";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
@@ -22,7 +24,7 @@ export async function GET(request: Request) {
       return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
     }
 
-    const result = searchPosts(parsed.data);
+    const result = await searchPosts(parsed.data);
     return NextResponse.json(
       { data: result.items, meta: { total: result.total, page: result.page, pageSize: result.pageSize } },
       {

@@ -1,7 +1,5 @@
 import { z } from "zod";
 
-import { disciplines } from "@/lib/mock/community-data";
-
 export const searchQuerySchema = z.object({
   q: z.string().trim().optional(),
   discipline: z.string().trim().optional(),
@@ -27,5 +25,3 @@ export type SearchResultItem = {
   score: number;
   createdAt: string;
 };
-
-export const validDisciplines = new Set<string>(disciplines.map((discipline) => discipline.slug));

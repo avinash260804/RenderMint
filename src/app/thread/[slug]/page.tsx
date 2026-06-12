@@ -11,7 +11,7 @@ import { getThreadBySlug, getThreadStaticSlugs } from "@/modules/feed/server/fee
 import { getHelpSolutionState } from "@/modules/help/server/help-solution-service";
 
 type ThreadPageProps = {
-  params: { slug: string };
+  params: Promise<{ slug: string }> | { slug: string };
 };
 
 export const revalidate = 60;
@@ -22,7 +22,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: ThreadPageProps): Promise<Metadata> {
-  const post = await getThreadBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getThreadBySlug(slug);
 
   if (!post) {
     return {
@@ -85,7 +86,8 @@ export async function generateMetadata({ params }: ThreadPageProps): Promise<Met
 }
 
 export default async function ThreadPage({ params }: ThreadPageProps) {
-  const post = await getThreadBySlug(params.slug);
+  const { slug } = await params;
+  const post = await getThreadBySlug(slug);
 
   if (!post) {
     notFound();

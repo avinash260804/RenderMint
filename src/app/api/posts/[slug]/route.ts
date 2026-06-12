@@ -6,14 +6,13 @@ import { postUpdateSchema } from "@/modules/posts/schemas/post-api-schema";
 import { deletePost, getPostBySlug, updatePost } from "@/modules/posts/server/post-service";
 
 type RouteProps = {
-  params: {
-    slug: string;
-  };
+  params: Promise<{ slug: string }> | { slug: string };
 };
 
 export async function GET(_: Request, { params }: RouteProps) {
   try {
-    const post = await getPostBySlug(params.slug);
+    const { slug } = await params;
+    const post = await getPostBySlug(slug);
 
     if (!post) {
       return apiError("NOT_FOUND", "Post not found.", 404);
@@ -28,7 +27,8 @@ export async function GET(_: Request, { params }: RouteProps) {
 export async function PATCH(request: Request, { params }: RouteProps) {
   try {
     const { userId } = await requireAuth();
-    const existing = await getPostBySlug(params.slug);
+    const { slug } = await params;
+    const existing = await getPostBySlug(slug);
 
     if (!existing) {
       return apiError("NOT_FOUND", "Post not found.", 404);
@@ -51,7 +51,8 @@ export async function PATCH(request: Request, { params }: RouteProps) {
 export async function DELETE(_: Request, { params }: RouteProps) {
   try {
     const { userId } = await requireAuth();
-    const existing = await getPostBySlug(params.slug);
+    const { slug } = await params;
+    const existing = await getPostBySlug(slug);
 
     if (!existing) {
       return apiError("NOT_FOUND", "Post not found.", 404);

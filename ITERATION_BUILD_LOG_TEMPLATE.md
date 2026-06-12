@@ -615,121 +615,339 @@ Next Recommended Sprint:
 
 Date:
 
+2026-06-13
+
 Objective:
+
+Move the search API away from mock feed content and onto Prisma-backed post queries while preserving the existing API and UI response contract.
 
 Scope:
 
+ - keep the existing `/api/search` route and `{ data, meta }` response envelope
+ - keep `searchPosts()` as the search service abstraction
+ - query persisted posts, disciplines, softwares, and tags with Prisma
+ - preserve filters for discipline, software, post type, and solved state
+ - preserve ranking intent for relevance, solved help priority, engagement, and freshness
+ - avoid UI rewrites because the current Explore contract remains compatible
+
 Files Added:
+
+ - none
 
 Files Modified:
 
+ - `src/app/api/search/route.ts`
+ - `src/modules/search/server/search-service.ts`
+ - `src/modules/search/schemas/search-schema.ts`
+ - `.env.example`
+ - `ITERATION_BUILD_LOG_TEMPLATE.md`
+
 Files Removed:
+
+ - none
 
 Database Changes:
 
+ - migration created: no
+ - schema changed: no
+ - seed changed: no
+ - RLS changed: no
+
 Architecture Notes:
+
+ - search is now database-backed at the service layer and no longer imports `community-data.ts`
+ - the search API remains a thin controller and now awaits the async service
+ - `/api/search` is explicitly dynamic because it reads request query params and performs runtime search work
+ - ranking remains application-level for this sprint to avoid premature PostgreSQL full-text migration before seed rewrite
+ - Algolia remains deferred as the future optimized search replica described in the implementation plan
+ - `.env.example` no longer sets `NODE_ENV`; Next should control `NODE_ENV` through its own dev/build/start scripts
 
 Verification Run:
 
+ - `npm.cmd run typecheck`
+ - `npm.cmd run lint`
+ - `npm run build` in the user's local terminal
+ - `rg "community-data|communityPosts|validDisciplines|sprintSearchCache" src\modules\search src\app\api\search src\components\forum\search-experience.tsx`
+
 Verification Result:
+
+ - `npm.cmd run typecheck` passed
+ - `npm.cmd run lint` passed with no warnings or errors
+ - local terminal build progressed through compile, type validation, page data collection, static generation, trace collection, and final page optimization
+ - search module and API no longer contain mock data imports or cache-store references
+ - the only remaining nearby `community-data` reference is a type-only UI card contract in `SearchExperience`, not the search source
 
 Issues Encountered:
 
+ - the Codex managed shell repeatedly timed out while the user's real local terminal continued through the Next build normally
+ - initial debugging tested `experimental.webpackBuildWorker: false`, but that was removed because it was not needed for the actual local build and added an unnecessary experimental warning
+ - seed data is still sparse, so database-backed search can return empty results until Sprint 10 seed rewrite or real posts exist
+
 Resolution:
+
+ - the timeout was treated as a Codex shell/process-output limitation after the user's local terminal showed successful build progression
+ - `NODE_ENV=development` was removed from `.env.example` so future setup does not accidentally force development mode during production builds
+ - the search route was marked dynamic to match its runtime behavior
+ - full-text search indexes and Algolia integration remain deferred to later production optimization
 
 Status:
 
+ - completed with follow-up
+
 Next Recommended Sprint:
+
+ - Sprint 8: Votes And Reputation
 
 ### Sprint 8: Votes And Reputation
 
 Date:
 
+2026-06-13
+
 Objective:
+
+Introduce persisted voting and simple reputation recalculation on top of the existing Prisma post/comment foundation.
 
 Scope:
 
+ - add vote request validation
+ - add transaction-safe post voting
+ - add transaction-safe comment voting
+ - support vote create, toggle off, and flip between up/down
+ - prevent self-voting on own posts or comments
+ - expose authenticated `/api/votes` read and mutation endpoints
+ - recalculate simple profile reputation after vote changes
+
 Files Added:
+
+ - `src/modules/votes/schemas/vote-schema.ts`
+ - `src/modules/votes/server/vote-service.ts`
+ - `src/modules/reputation/server/reputation-service.ts`
+ - `src/app/api/votes/route.ts`
 
 Files Modified:
 
+ - `ITERATION_BUILD_LOG_TEMPLATE.md`
+
 Files Removed:
+
+ - none
 
 Database Changes:
 
+ - migration created: no
+ - schema changed: no
+ - seed changed: no
+ - RLS changed: no
+
 Architecture Notes:
+
+ - votes use the existing Prisma `votes` table and unique constraints for author/post and author/comment
+ - vote mutation logic lives in `src/modules/votes/server/vote-service.ts`, keeping the route thin
+ - reputation recalculation is isolated in `src/modules/reputation/server/reputation-service.ts`
+ - reputation currently follows the simple MVP model from `AGENTS.md`: accepted answers, critique comments, comment upvotes, post upvotes, and discussion participation
+ - no voting UI was added in this sprint; the API is ready for later UI integration
 
 Verification Run:
 
+ - `npm.cmd run typecheck`
+ - `npm.cmd run lint`
+ - `rg "community-data|globalThis|Map<|mock" src\modules\votes src\modules\reputation src\app\api\votes`
+
 Verification Result:
+
+ - `npm.cmd run typecheck` passed
+ - `npm.cmd run lint` passed with no warnings or errors
+ - votes and reputation modules contain no mock or in-memory store dependencies
+ - production build should be run in the user's local terminal, where `npm run build` has already been confirmed to progress normally
 
 Issues Encountered:
 
+ - none during implementation
+
 Resolution:
+
+ - sprint kept backend-only as planned so UI can be wired later against a stable API contract
 
 Status:
 
+ - completed
+
 Next Recommended Sprint:
+
+ - Sprint 9: Tags And Profiles
 
 ### Sprint 9: Tags And Profiles
 
 Date:
 
+2026-06-13
+
 Objective:
+
+Add persisted tags and profile APIs to support discovery, public identity, profile editing, and profile stats.
 
 Scope:
 
+ - add tag listing and search service
+ - add popular tags query with optional discipline filtering
+ - add `/api/tags`
+ - add profile update validation
+ - add public profile read service by username
+ - add authenticated current-user profile read/update service
+ - add profile stats for posts, comments, accepted answers, and reputation
+ - preserve backend-only scope with no UI page implementation
+
 Files Added:
+
+ - `src/modules/tags/server/tag-service.ts`
+ - `src/app/api/tags/route.ts`
+ - `src/modules/profiles/schemas/profile-schema.ts`
+ - `src/modules/profiles/server/profile-service.ts`
+ - `src/app/api/profiles/[username]/route.ts`
+ - `src/app/api/profiles/me/route.ts`
 
 Files Modified:
 
+ - `ITERATION_BUILD_LOG_TEMPLATE.md`
+
 Files Removed:
+
+ - none
 
 Database Changes:
 
+ - migration created: no
+ - schema changed: no
+ - seed changed: no
+ - RLS changed: no
+
 Architecture Notes:
+
+ - tag discovery now uses persisted `tags` and `post_tags` records
+ - profile reads and updates are isolated in `src/modules/profiles/server/profile-service.ts`
+ - profile update validates username uniqueness and discipline/software compatibility
+ - public and current-user profile APIs are explicitly dynamic because they read persisted database state
+ - no profile UI was added in this sprint; future UI can consume stable API contracts
 
 Verification Run:
 
+ - `npm.cmd run typecheck`
+ - `npm.cmd run lint`
+ - `rg "community-data|globalThis|Map<|mock" src\modules\tags src\modules\profiles src\app\api\tags src\app\api\profiles`
+
 Verification Result:
+
+ - `npm.cmd run typecheck` passed
+ - `npm.cmd run lint` passed with no warnings or errors
+ - tags and profiles modules contain no mock or in-memory store dependencies
+ - production build should be run in the user's local terminal because the Codex managed shell times out while local terminal build works
 
 Issues Encountered:
 
+ - none during implementation
+
 Resolution:
+
+ - sprint stayed backend-only and preserved existing page contracts
 
 Status:
 
+ - completed
+
 Next Recommended Sprint:
+
+ - Sprint 10: Seed Rewrite, Test Gates, And Final Stabilization
 
 ### Sprint 10: Seed Rewrite, Test Gates, And Final Stabilization
 
 Date:
 
+2026-06-13
+
 Objective:
+
+Rewrite the seed system into a realistic data-backed MVP dataset and add clear verification gates for future development.
 
 Scope:
 
+- replace minimal seed data with realistic community content
+- seed disciplines, softwares, profiles, posts, comments, tags, post tags, attachments, votes, counters, reputation, and accepted help solution state
+- keep seed idempotent with upserts and stable identifiers
+- add package verification scripts
+- add a Sprint 10 verification document
+- run schema, lint, typecheck, generate, and build verification
+
 Files Added:
+
+- `SPRINT_10_VERIFICATION.md`
 
 Files Modified:
 
+- `prisma/seed.js`
+- `package.json`
+- `ITERATION_BUILD_LOG_TEMPLATE.md`
+
 Files Removed:
+
+- none
 
 Database Changes:
 
+- migration created: no
+- schema changed: no
+- seed changed: yes
+- RLS changed: no
+
 Architecture Notes:
+
+- seed now covers all MVP post types: discussion, critique, showcase, help, and resource
+- seed data is intentionally architecture-first while still covering interior design and urban design
+- seed writes realistic relationships across profiles, profile software selections, tags, post tags, comments, attachments, votes, and accepted answer state
+- post/comment vote counters and profile reputation are recalculated after seed writes so persisted read models are coherent
+- seed connection prefers `SEED_DATABASE_URL`, then `DATABASE_URL`, then `DIRECT_URL`; Supabase pooler URLs are normalized with low connection usage
+- verification gates are documented in `SPRINT_10_VERIFICATION.md`
 
 Verification Run:
 
+- `node --check prisma/seed.js`
+- `npx.cmd prisma validate`
+- `npx.cmd prisma generate`
+- `npm.cmd run typecheck`
+- `npm.cmd run lint`
+- `npm.cmd run verify`
+- `npx.cmd prisma db seed`
+
 Verification Result:
+
+- seed syntax check passed
+- Prisma schema validation passed
+- Prisma client generation passed
+- typecheck passed
+- lint passed with no warnings or errors
+- `npm run verify` passed serially and completed production build
+- `npx prisma db seed` could not complete in the Codex environment because the Supabase hosts were unreachable from this sandbox
 
 Issues Encountered:
 
+- direct Supabase host on `db.yuwlgzequrpsfnhvbxsq.supabase.co:5432` was unreachable from the Codex environment
+- pooled Supabase host on `aws-1-ap-southeast-1.pooler.supabase.com:6543` was also unreachable from the Codex environment during seed execution
+- running two Next builds in parallel produced a transient `.next/types` race in one process; the serial verification command passed cleanly
+
 Resolution:
+
+- seed was changed to prefer runtime pooled `DATABASE_URL` before `DIRECT_URL`, with optional `SEED_DATABASE_URL` override for local environments
+- verification guidance documents the required local commands and environment variables
+- build verification was run serially through `npm run verify`
+- final seed execution should be run from the user's normal local terminal where Supabase is reachable
 
 Status:
 
+- completed with follow-up
+
 Next Recommended Sprint:
+
+- This V2 iteration is complete; recommended next phase is UI wiring and manual smoke testing against the seeded database.
 
 ---
 

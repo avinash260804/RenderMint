@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { canAttemptDatabaseQuery } from "@/lib/db/availability";
 import { NotFoundError } from "@/lib/errors";
 import { sanitizeText } from "@/lib/sanitize";
 import type { CommentCreateInput, CommentRecord } from "@/modules/comments/schemas/comment-schema";
@@ -16,36 +17,44 @@ type PersistedComment = Prisma.CommentGetPayload<{
 }>;
 
 export async function listCommentsByPostSlug(postSlug: string) {
-  const post = await prisma.post.findFirst({
-    where: {
-      slug: postSlug,
-      deletedAt: null,
-    } as never,
-    select: { id: true },
-  });
-
-  if (!post) {
+  if (!(await canAttemptDatabaseQuery())) {
     return [];
   }
 
-  const comments = await prisma.comment.findMany({
-    where: {
-      postId: post.id,
-      deletedAt: null,
-    } as never,
-    include: {
-      author: {
-        select: {
-          username: true,
+  try {
+    const post = await prisma.post.findFirst({
+      where: {
+        slug: postSlug,
+        deletedAt: null,
+      } as never,
+      select: { id: true },
+    });
+
+    if (!post) {
+      return [];
+    }
+
+    const comments = await prisma.comment.findMany({
+      where: {
+        postId: post.id,
+        deletedAt: null,
+      } as never,
+      include: {
+        author: {
+          select: {
+            username: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
 
-  return comments.map((comment) => mapCommentRecord(comment, postSlug));
+    return comments.map((comment) => mapCommentRecord(comment, postSlug));
+  } catch {
+    return [];
+  }
 }
 
 export async function createComment(input: CommentCreateInput & { authorId: string }) {
