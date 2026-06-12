@@ -3,24 +3,18 @@ import { notFound } from "next/navigation";
 import { DisciplineTabs } from "@/components/forum/discipline-tabs";
 import { PostGrid } from "@/components/forum/post-grid";
 import { AppLayoutShell } from "@/components/ui-system/app-layout-shell";
-import {
-  disciplines,
-  getDisciplineBySlug,
-  getPostsByType,
-  type DisciplineSlug,
-} from "@/lib/mock/community-data";
+import { getDisciplineFeed, getDisciplineList } from "@/modules/feed/server/feed-service";
 
 export const revalidate = 300;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const disciplines = await getDisciplineList();
   return disciplines.map((discipline) => ({ discipline: discipline.slug }));
 }
 
-export default function DisciplineShowcasePage({ params }: { params: { discipline: string } }) {
-  const discipline = getDisciplineBySlug(params.discipline);
+export default async function DisciplineShowcasePage({ params }: { params: { discipline: string } }) {
+  const { discipline, posts } = await getDisciplineFeed(params.discipline, "showcase");
   if (!discipline) notFound();
-
-  const posts = getPostsByType("showcase", discipline.slug as DisciplineSlug);
 
   return (
     <AppLayoutShell navLabel="Showcase" navTitle={`${discipline.name} showcase`}>

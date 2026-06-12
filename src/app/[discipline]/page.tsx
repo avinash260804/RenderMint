@@ -4,27 +4,21 @@ import { DisciplineTabs } from "@/components/forum/discipline-tabs";
 import { PostGrid } from "@/components/forum/post-grid";
 import { Badge } from "@/components/ui/badge";
 import { AppLayoutShell } from "@/components/ui-system/app-layout-shell";
-import {
-  disciplines,
-  getDisciplineBySlug,
-  getPostsByDiscipline,
-  type DisciplineSlug,
-} from "@/lib/mock/community-data";
+import { getDisciplineFeed, getDisciplineList } from "@/modules/feed/server/feed-service";
 
 export const revalidate = 300;
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const disciplines = await getDisciplineList();
   return disciplines.map((discipline) => ({ discipline: discipline.slug }));
 }
 
-export default function DisciplineHubPage({ params }: { params: { discipline: string } }) {
-  const discipline = getDisciplineBySlug(params.discipline);
+export default async function DisciplineHubPage({ params }: { params: { discipline: string } }) {
+  const { discipline, posts } = await getDisciplineFeed(params.discipline);
 
   if (!discipline) {
     notFound();
   }
-
-  const posts = getPostsByDiscipline(discipline.slug as DisciplineSlug);
 
   return (
     <AppLayoutShell navLabel="Discipline Hub" navTitle={`${discipline.name} community`}>

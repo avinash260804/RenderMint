@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 
 import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-error";
 import { requireAuth } from "@/lib/auth/require-auth";
-import { getPostBySlug } from "@/lib/mock/community-data";
 import {
   helpSolutionMutationSchema,
   helpSolutionQuerySchema,
 } from "@/modules/help/schemas/help-solution-schema";
-import { getHelpSolutionState, setHelpSolution } from "@/modules/help/server/help-solution-store";
+import { getHelpSolutionState, setHelpSolution } from "@/modules/help/server/help-solution-service";
 
 export async function GET(request: Request) {
   try {
@@ -20,11 +19,6 @@ export async function GET(request: Request) {
       return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
     }
 
-    const post = getPostBySlug(parsed.data.postSlug);
-    if (!post || post.type !== "help") {
-      return apiError("INVALID_POST_TYPE", "Solved state is only available for help threads.", 400);
-    }
-
     const state = await getHelpSolutionState(parsed.data.postSlug);
     return NextResponse.json({ data: state });
   } catch (error) {
@@ -34,7 +28,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    await requireAuth();
+    const { userId } = await requireAuth();
     const body = await request.json().catch(() => null);
     const parsed = helpSolutionMutationSchema.safeParse(body);
 
@@ -42,12 +36,7 @@ export async function POST(request: Request) {
       return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
     }
 
-    const post = getPostBySlug(parsed.data.postSlug);
-    if (!post || post.type !== "help") {
-      return apiError("INVALID_POST_TYPE", "Solved state is only available for help threads.", 400);
-    }
-
-    const state = await setHelpSolution(parsed.data.postSlug, parsed.data.commentId);
+    const state = await setHelpSolution(parsed.data.postSlug, parsed.data.commentId, userId);
     return NextResponse.json({ data: state });
   } catch (error) {
     return handleApiError(error);

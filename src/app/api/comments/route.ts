@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 
 import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-error";
-import { requireAuth } from "@/lib/auth/require-auth";
+import { requireAuth, requireOnboarded } from "@/lib/auth/require-auth";
 import { requireRateLimit } from "@/lib/rate-limit";
-import { sanitizeText } from "@/lib/sanitize";
 import {
   commentCreateSchema,
   commentListQuerySchema,
 } from "@/modules/comments/schemas/comment-schema";
-import { createComment, listCommentsByPostSlug } from "@/modules/comments/server/comment-store";
+import { createComment, listCommentsByPostSlug } from "@/modules/comments/server/comment-service";
 
 export async function GET(request: Request) {
   try {
@@ -30,7 +29,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { userId, user } = await requireAuth();
+    const { userId } = await requireAuth();
+    await requireOnboarded(userId);
     const body = await request.json().catch(() => null);
     const parsed = commentCreateSchema.safeParse(body);
 
@@ -40,17 +40,9 @@ export async function POST(request: Request) {
 
     requireRateLimit(`comment-create:${userId}`, 20, 60 * 60 * 1000);
 
-    const authorName =
-      user.user_metadata?.full_name ||
-      user.user_metadata?.name ||
-      user.email ||
-      "Community member";
-
     const comment = await createComment({
       ...parsed.data,
-      body: sanitizeText(parsed.data.body),
       authorId: userId,
-      authorName,
     });
 
     return NextResponse.json({ data: comment }, { status: 201 });

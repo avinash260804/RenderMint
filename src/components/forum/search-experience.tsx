@@ -6,8 +6,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { PostGrid } from "@/components/forum/post-grid";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { disciplines } from "@/lib/mock/community-data";
-import type { CommunityPost, CommunityPostType } from "@/lib/mock/community-data";
+import type { CommunityPost, CommunityPostType, DisciplineData } from "@/lib/mock/community-data";
 
 type SearchApiResponse = {
   data: Array<{
@@ -32,6 +31,11 @@ type SearchApiResponse = {
 const postTypes: CommunityPostType[] = ["discussion", "critique", "showcase", "help", "resource"];
 
 export function SearchExperience() {
+type SearchExperienceProps = {
+  disciplines: DisciplineData[];
+};
+
+export function SearchExperience({ disciplines }: SearchExperienceProps) {
   const [q, setQ] = useState("");
   const [discipline, setDiscipline] = useState("");
   const [software, setSoftware] = useState("");

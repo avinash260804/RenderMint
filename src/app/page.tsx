@@ -5,12 +5,12 @@ import { PostGrid } from "@/components/forum/post-grid";
 import { Badge } from "@/components/ui/badge";
 import { AppLayoutShell } from "@/components/ui-system/app-layout-shell";
 import { typographyTokens } from "@/components/ui-system/tokens";
-import { disciplines, getHomeSections } from "@/lib/mock/community-data";
+import { getDisciplineList, getHomeFeed } from "@/modules/feed/server/feed-service";
 
 export const revalidate = 300;
 
-export default function HomePage() {
-  const sections = getHomeSections();
+export default async function HomePage() {
+  const [sections, disciplines] = await Promise.all([getHomeFeed(), getDisciplineList()]);
 
   return (
     <AppLayoutShell navLabel="Home" navTitle="Community-first discovery for designers">

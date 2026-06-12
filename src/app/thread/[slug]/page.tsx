@@ -7,8 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { AppLayoutShell } from "@/components/ui-system/app-layout-shell";
 import { env } from "@/lib/env";
-import { communityPosts, getPostBySlug } from "@/lib/mock/community-data";
-import { getHelpSolutionState } from "@/modules/help/server/help-solution-store";
+import { getThreadBySlug, getThreadStaticSlugs } from "@/modules/feed/server/feed-service";
+import { getHelpSolutionState } from "@/modules/help/server/help-solution-service";
 
 type ThreadPageProps = {
   params: { slug: string };
@@ -16,12 +16,13 @@ type ThreadPageProps = {
 
 export const revalidate = 60;
 
-export function generateStaticParams() {
-  return communityPosts.map((post) => ({ slug: post.slug }));
+export async function generateStaticParams() {
+  const slugs = await getThreadStaticSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: ThreadPageProps): Promise<Metadata> {
-  const post = getPostBySlug(params.slug);
+  const post = await getThreadBySlug(params.slug);
 
   if (!post) {
     return {
@@ -84,7 +85,7 @@ export async function generateMetadata({ params }: ThreadPageProps): Promise<Met
 }
 
 export default async function ThreadPage({ params }: ThreadPageProps) {
-  const post = getPostBySlug(params.slug);
+  const post = await getThreadBySlug(params.slug);
 
   if (!post) {
     notFound();
@@ -155,8 +156,8 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
               Posted by <span itemProp="author">{post.author}</span>
             </p>
             <p className="text-sm leading-6" itemProp="articleBody">
-              This is a mock thread body for Sprint 8 comment flow testing. The focus in this sprint
-              is comments architecture, interaction, and moderation-ready structure.
+              {post.bodyPreview ??
+                "This thread is part of the active Designers Hub community feed and is rendered through the current thread read path."}
             </p>
           </CardContent>
         </Card>

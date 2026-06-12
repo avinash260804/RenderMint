@@ -373,91 +373,225 @@ Next Recommended Sprint:
 
 Date:
 
+2026-06-12
+
 Objective:
+
+Replace the in-memory comment store with a Prisma-backed comment service while preserving the existing comments API and thread UI contract.
 
 Scope:
 
+ - add `comment-service.ts`
+ - move comment listing to Prisma by post slug
+ - move comment creation to Prisma with atomic `commentCount` increment
+ - switch `/api/comments` from the mock store to the new service
+ - require onboarded users for persisted comment creation
+
 Files Added:
+
+ - `src/modules/comments/server/comment-service.ts`
 
 Files Modified:
 
+ - `src/app/api/comments/route.ts`
+ - `src/modules/comments/schemas/comment-schema.ts`
+ - `ITERATION_BUILD_LOG_TEMPLATE.md`
+
 Files Removed:
+
+ - none yet
 
 Database Changes:
 
+ - migration created: no
+ - schema changed: no
+ - seed changed: no
+ - RLS changed: no
+
 Architecture Notes:
+
+ - comments now resolve through Prisma instead of a global runtime map
+ - route contract remained stable with `{ data: ... }` responses so the thread UI does not need a redesign
+ - comment creation now aligns with the persisted profile model by requiring onboarded users
 
 Verification Run:
 
+ - `npm run typecheck`
+ - `npm run build`
+
 Verification Result:
+
+ - `npm run typecheck` passed
+ - `npm run build` passed
+ - the comments API remained compatible with the existing thread comments panel
 
 Issues Encountered:
 
+ - current thread pages still resolve posts from mock data, so comment listing remains slug-based for compatibility until feed migration
+
 Resolution:
+
+ - the service resolves post slug to post id internally so feed cutover can happen later without rewriting the comments panel now
 
 Status:
 
+ - completed
+
 Next Recommended Sprint:
+
+ - Sprint 5: Help Solved Persistence Cutover
 
 ### Sprint 5: Help Solved Persistence Cutover
 
 Date:
 
+2026-06-12
+
 Objective:
+
+Replace the in-memory help solved-state path with a Prisma-backed service while preserving current thread behavior during the mock-feed transition.
 
 Scope:
 
+ - add `help-solution-service.ts`
+ - read solved state from persisted posts when available
+ - set and clear accepted comment through Prisma transactions
+ - enforce author-only mutation for persisted help threads
+ - switch the help solution API and thread page to the new service
+
 Files Added:
+
+ - `src/modules/help/server/help-solution-service.ts`
 
 Files Modified:
 
+ - `src/app/api/help/solution/route.ts`
+ - `src/app/thread/[slug]/page.tsx`
+ - `ITERATION_BUILD_LOG_TEMPLATE.md`
+
 Files Removed:
+
+ - none yet
 
 Database Changes:
 
+ - migration created: no
+ - schema changed: no
+ - seed changed: no
+ - RLS changed: no
+
 Architecture Notes:
+
+ - solved-state logic is now Prisma-first and transaction-backed for persisted posts and comments
+ - a compatibility fallback to the legacy in-memory store remains for existing mock help threads until feed migration removes `community-data.ts`
+ - author ownership is now enforced for persisted accepted-answer mutations
 
 Verification Run:
 
+ - `npm run build`
+ - `npm run typecheck`
+
 Verification Result:
+
+ - `npm run build` passed
+ - `npm run typecheck` passed
+ - build still logs Prisma connection noise for mock help threads when no local database is running, but the Prisma-first service now falls back safely and the app build completes
 
 Issues Encountered:
 
+ - help threads displayed today still come from mock page data, so removing the legacy store immediately would regress the current app
+ - running build and typecheck in parallel caused temporary `.next/types` race errors during verification
+
 Resolution:
+
+ - the new service uses Prisma when the post exists in the database and falls back to the legacy store only for mock-era help thread slugs
+ - final verification was rerun serially to confirm clean build and typecheck results
 
 Status:
 
+ - completed with follow-up
+
 Next Recommended Sprint:
+
+ - Sprint 6: Feed Migration Off Mock Data
 
 ### Sprint 6: Feed Migration Off Mock Data
 
 Date:
 
+2026-06-12
+
 Objective:
+
+Move page-level feed loading away from direct `community-data.ts` imports and onto a central feed service.
 
 Scope:
 
+ - add `feed-service.ts`
+ - migrate home page to feed service
+ - migrate discipline hub and discipline sub-pages to feed service
+ - migrate thread page to feed service
+ - move explore discipline source into the feed service path
+ - preserve mock fallback centrally until seed data catches up
+
 Files Added:
+
+ - `src/modules/feed/server/feed-service.ts`
 
 Files Modified:
 
+ - `src/app/page.tsx`
+ - `src/app/explore/page.tsx`
+ - `src/app/[discipline]/page.tsx`
+ - `src/app/[discipline]/discussions/page.tsx`
+ - `src/app/[discipline]/critique/page.tsx`
+ - `src/app/[discipline]/showcase/page.tsx`
+ - `src/app/[discipline]/help/page.tsx`
+ - `src/app/[discipline]/resources/page.tsx`
+ - `src/app/thread/[slug]/page.tsx`
+ - `src/components/forum/search-experience.tsx`
+ - `ITERATION_BUILD_LOG_TEMPLATE.md`
+
 Files Removed:
+
+ - none
 
 Database Changes:
 
+ - migration created: no
+ - schema changed: no
+ - seed changed: no
+ - RLS changed: no
+
 Architecture Notes:
+
+ - feed resolution is centralized in a Prisma-first service layer
+ - page-level imports from `community-data.ts` are removed
+ - mock data remains as a controlled fallback only inside the feed service until the seed rewrite and full feed cutover are complete
 
 Verification Run:
 
+ - pending
+
 Verification Result:
+
+ - pending
 
 Issues Encountered:
 
+ - the database currently does not contain enough seeded posts to replace mock feed content outright
+
 Resolution:
+
+ - the feed service is designed as Prisma-first with mock fallback so the app remains stable during the migration window
 
 Status:
 
+ - in progress
+
 Next Recommended Sprint:
+
+ - Sprint 7: Search Migration To Database-Backed Search
 
 ### Sprint 7: Search Migration To Database-Backed Search
 
