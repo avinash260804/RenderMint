@@ -1,4 +1,5 @@
 import { getPostBySlug as getMockPostBySlug } from "@/lib/mock/community-data";
+import { canAttemptDatabaseQuery } from "@/lib/db/availability";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { HelpSolutionState } from "@/modules/help/schemas/help-solution-schema";
 import {
@@ -8,6 +9,15 @@ import {
 import { prisma } from "@/server/db/client";
 
 export async function getHelpSolutionState(postSlug: string): Promise<HelpSolutionState> {
+  if (!(await canAttemptDatabaseQuery())) {
+    const mockPost = getMockPostBySlug(postSlug);
+    if (mockPost?.type === "help") {
+      return getLegacyHelpSolutionState(postSlug);
+    }
+
+    throw new NotFoundError("Help thread not found.");
+  }
+
   try {
     const post = await prisma.post.findFirst({
       where: {
@@ -47,6 +57,15 @@ export async function getHelpSolutionState(postSlug: string): Promise<HelpSoluti
 }
 
 export async function setHelpSolution(postSlug: string, commentId: string | null, userId: string) {
+  if (!(await canAttemptDatabaseQuery())) {
+    const mockPost = getMockPostBySlug(postSlug);
+    if (mockPost?.type === "help") {
+      return setLegacyHelpSolution(postSlug, commentId);
+    }
+
+    throw new NotFoundError("Help thread not found.");
+  }
+
   try {
     const post = await prisma.post.findFirst({
       where: {

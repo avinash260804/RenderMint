@@ -30,7 +30,6 @@ type SearchApiResponse = {
 
 const postTypes: CommunityPostType[] = ["discussion", "critique", "showcase", "help", "resource"];
 
-export function SearchExperience() {
 type SearchExperienceProps = {
   disciplines: DisciplineData[];
 };
@@ -52,7 +51,7 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
     }
 
     return disciplines.find((item) => item.slug === discipline)?.softwares ?? [];
-  }, [discipline]);
+  }, [discipline, disciplines]);
 
   useEffect(() => {
     const controller = new AbortController();

@@ -12,10 +12,15 @@ import {
   type DisciplineData,
   type DisciplineSlug,
 } from "@/lib/mock/community-data";
+import { canAttemptDatabaseQuery } from "@/lib/db/availability";
 import { prisma } from "@/server/db/client";
 import { getPostBySlug as getPersistedPostBySlug } from "@/modules/posts/server/post-service";
 
 export async function getHomeFeed() {
+  if (!(await canAttemptDatabaseQuery())) {
+    return getHomeSections();
+  }
+
   try {
     const posts = await prisma.post.findMany({
       where: { deletedAt: null } as never,
@@ -66,6 +71,10 @@ export async function getHomeFeed() {
 }
 
 export async function getDisciplineList(): Promise<DisciplineData[]> {
+  if (!(await canAttemptDatabaseQuery())) {
+    return mockDisciplines;
+  }
+
   try {
     const disciplines = await prisma.discipline.findMany({
       orderBy: { name: "asc" },
@@ -104,6 +113,17 @@ export async function getDisciplineFeed(
   postType?: CommunityPostType,
 ): Promise<{ discipline: DisciplineData | null; posts: CommunityPost[] }> {
   const fallbackDiscipline = getMockDisciplineBySlug(slug);
+
+  if (!(await canAttemptDatabaseQuery())) {
+    if (!fallbackDiscipline) return { discipline: null, posts: [] };
+
+    return {
+      discipline: fallbackDiscipline,
+      posts: postType
+        ? getMockPostsByType(postType, slug as DisciplineSlug)
+        : getMockPostsByDiscipline(slug as DisciplineSlug),
+    };
+  }
 
   try {
     const discipline = await prisma.discipline.findUnique({
@@ -199,14 +219,19 @@ export async function getDisciplineFeed(
 }
 
 export async function getThreadBySlug(slug: string) {
+  if (!(await canAttemptDatabaseQuery())) {
+    return getMockPostBySlug(slug) ?? null;
+  }
+
   try {
     const persisted = await getPersistedPostBySlug(slug);
 
     if (persisted) {
       return {
+        id: persisted.id,
         slug: persisted.slug,
         title: persisted.title,
-        type: persisted.postType,
+        type: persisted.postType as CommunityPostType,
         discipline: persisted.discipline.slug as DisciplineSlug,
         software: persisted.software?.name ?? undefined,
         author: persisted.author.username,
@@ -224,8 +249,9 @@ export async function getThreadBySlug(slug: string) {
 }
 
 export async function getThreadStaticSlugs() {
-  const fallback = mockDisciplines.length > 0 ? undefined : undefined;
-  void fallback;
+  if (!(await canAttemptDatabaseQuery())) {
+    return getMockThreadSlugs();
+  }
 
   try {
     const posts = await prisma.post.findMany({
@@ -252,8 +278,8 @@ export async function getThreadStaticSlugs() {
 }
 
 function getMockThreadSlugs() {
-  return [
-    ...new Set(
+  return Array.from(
+    new Set(
       [
         ...getHomeSections().trendingDiscussions,
         ...getHomeSections().critiqueRequests,
@@ -262,7 +288,7 @@ function getMockThreadSlugs() {
         ...getHomeSections().weeklyResources,
       ].map((post) => post.slug),
     ),
-  ];
+  );
 }
 
 function mapPersistedPostToCommunityPost(
@@ -282,7 +308,7 @@ function mapPersistedPostToCommunityPost(
         select: {
           name: true;
         };
-      } | true;
+      };
       postTags: {
         include: {
           tag: true;

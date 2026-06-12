@@ -537,10 +537,12 @@ Scope:
 Files Added:
 
  - `src/modules/feed/server/feed-service.ts`
+ - `src/lib/db/availability.ts`
 
 Files Modified:
 
  - `src/app/page.tsx`
+ - `src/app/layout.tsx`
  - `src/app/explore/page.tsx`
  - `src/app/[discipline]/page.tsx`
  - `src/app/[discipline]/discussions/page.tsx`
@@ -550,6 +552,7 @@ Files Modified:
  - `src/app/[discipline]/resources/page.tsx`
  - `src/app/thread/[slug]/page.tsx`
  - `src/components/forum/search-experience.tsx`
+ - `src/modules/help/server/help-solution-service.ts`
  - `ITERATION_BUILD_LOG_TEMPLATE.md`
 
 Files Removed:
@@ -568,26 +571,41 @@ Architecture Notes:
  - feed resolution is centralized in a Prisma-first service layer
  - page-level imports from `community-data.ts` are removed
  - mock data remains as a controlled fallback only inside the feed service until the seed rewrite and full feed cutover are complete
+ - feed and help solved-state reads now check database reachability before Prisma reads so local builds do not hang on an offline placeholder database
+ - bundled local fonts are used instead of network-loaded Google fonts to keep production builds deterministic in restricted environments
 
 Verification Run:
 
- - pending
+ - `npm.cmd run typecheck`
+ - `npm.cmd run lint`
+ - `npm.cmd run build`
+ - `npm.cmd exec next -- build --debug --no-lint`
 
 Verification Result:
 
- - pending
+ - `npm.cmd run typecheck` passed
+ - `npm.cmd run lint` passed with no warnings or errors
+ - `npm.cmd run build` generated `.next` build artifacts but the CLI process did not exit before the tool timeout in this managed environment
+ - `.next/trace` shows `next-build`, `static-generation`, route export, and file tracing completed successfully in the debug build before the process stayed open
+ - build should be rerun in a normal local terminal before commit/push if strict CLI exit confirmation is required
 
 Issues Encountered:
 
  - the database currently does not contain enough seeded posts to replace mock feed content outright
+ - `SearchExperience` had a duplicate component declaration from the partial Sprint 6 migration and failed typecheck until repaired
+ - the local placeholder database can be offline during build, so direct Prisma read attempts needed a quick reachability guard
+ - the managed shell repeatedly timed out after Next completed build work but did not exit the process
 
 Resolution:
 
  - the feed service is designed as Prisma-first with mock fallback so the app remains stable during the migration window
+ - the Explore search component now receives disciplines through the server page contract correctly
+ - feed and help read paths preserve Prisma-first behavior when the database is reachable and fallback quickly when it is not
+ - local font loading removes build-time dependency on external font fetches
 
 Status:
 
- - in progress
+ - completed with follow-up
 
 Next Recommended Sprint:
 

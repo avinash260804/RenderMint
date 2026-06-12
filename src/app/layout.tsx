@@ -1,12 +1,19 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { cn } from "@/lib/utils";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { env } from "@/lib/env";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-serif" });
+const sans = localFont({
+  src: "./fonts/GeistVF.woff",
+  variable: "--font-sans",
+});
+
+const monoSerifFallback = localFont({
+  src: "./fonts/GeistMonoVF.woff",
+  variable: "--font-serif",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_APP_URL),
@@ -41,7 +48,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("font-sans", inter.variable, fraunces.variable)}
+      className={cn("font-sans", sans.variable, monoSerifFallback.variable)}
     >
       <body className="antialiased">
         <ThemeProvider
