@@ -50,16 +50,16 @@ export function AssetUploader({ postType, assets, onChange, error }: AssetUpload
       });
 
       const payload = (await response.json().catch(() => null)) as {
-        asset?: UploadedAsset;
-        error?: string;
+        data?: UploadedAsset;
+        error?: { message?: string };
       } | null;
 
-      if (!response.ok || !payload?.asset) {
-        setUploadError(payload?.error ?? "Upload failed.");
+      if (!response.ok || !payload?.data) {
+        setUploadError(payload?.error?.message ?? "Upload failed.");
         continue;
       }
 
-      nextAssets.push(payload.asset);
+      nextAssets.push(payload.data);
     }
 
     onChange(nextAssets);

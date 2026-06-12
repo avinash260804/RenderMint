@@ -84,9 +84,37 @@ export function PostCreationForm() {
     setSavedNotice(`Cleared ${postType} draft.`);
   }
 
-  function onSubmit(input: PostCreationValidated) {
-    localStorage.setItem(`designershub:submitted:${Date.now()}`, JSON.stringify(input));
-    setSavedNotice("Post validated successfully and saved as a local mock submission.");
+  async function onSubmit(input: PostCreationValidated) {
+    const response = await fetch("/api/posts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          data?: { slug?: string };
+          error?: { message?: string };
+        }
+      | null;
+
+    if (!response.ok) {
+      setSavedNotice(
+        payload?.error?.message ??
+          "Post validation passed locally, but publishing failed. Check auth/onboarding state.",
+      );
+      return;
+    }
+
+    localStorage.setItem(`designershub:submitted:${Date.now()}`, JSON.stringify(payload?.data));
+    localStorage.removeItem(draftStorageKey(input.postType));
+    setSavedNotice(
+      payload?.data?.slug
+        ? `Post created successfully with slug ${payload.data.slug}.`
+        : "Post created successfully.",
+    );
     form.reset({
       ...postCreationDefaultValues,
       postType: input.postType,

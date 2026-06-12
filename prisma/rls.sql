@@ -15,8 +15,16 @@ ALTER TABLE profile_softwares ENABLE ROW LEVEL SECURITY;
 CREATE POLICY profiles_read_all ON profiles FOR SELECT USING (true);
 CREATE POLICY disciplines_read_all ON disciplines FOR SELECT USING (true);
 CREATE POLICY softwares_read_all ON softwares FOR SELECT USING (true);
-CREATE POLICY posts_read_all ON posts FOR SELECT USING (true);
-CREATE POLICY comments_read_all ON comments FOR SELECT USING (true);
+CREATE POLICY posts_read_all ON posts FOR SELECT USING (deleted_at IS NULL);
+CREATE POLICY comments_read_all ON comments FOR SELECT USING (
+  deleted_at IS NULL
+  AND EXISTS (
+    SELECT 1
+    FROM posts p
+    WHERE p.id = comments.post_id
+      AND p.deleted_at IS NULL
+  )
+);
 CREATE POLICY attachments_read_all ON attachments FOR SELECT USING (true);
 CREATE POLICY tags_read_all ON tags FOR SELECT USING (true);
 CREATE POLICY post_tags_read_all ON post_tags FOR SELECT USING (true);

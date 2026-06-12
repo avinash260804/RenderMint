@@ -10,10 +10,7 @@ import { disciplines } from "@/lib/mock/community-data";
 import type { CommunityPost, CommunityPostType } from "@/lib/mock/community-data";
 
 type SearchApiResponse = {
-  total: number;
-  page: number;
-  pageSize: number;
-  items: Array<{
+  data: Array<{
     id: string;
     slug: string;
     title: string;
@@ -25,6 +22,11 @@ type SearchApiResponse = {
     bodyPreview: string;
     createdAt: string;
   }>;
+  meta: {
+    total: number;
+    page: number;
+    pageSize: number;
+  };
 };
 
 const postTypes: CommunityPostType[] = ["discussion", "critique", "showcase", "help", "resource"];
@@ -69,11 +71,14 @@ export function SearchExperience() {
 
       const payload = (await response.json().catch(() => null)) as
         | SearchApiResponse
-        | { error?: string }
+        | { error?: { message?: string } }
         | null;
 
       if (!response.ok) {
-        setError((payload as { error?: string } | null)?.error ?? "Search request failed.");
+        setError(
+          (payload as { error?: { message?: string } } | null)?.error?.message ??
+            "Search request failed.",
+        );
         setLoading(false);
         return;
       }
@@ -89,7 +94,7 @@ export function SearchExperience() {
   }, [deferredQuery, discipline, software, postType, solved]);
 
   const posts: CommunityPost[] =
-    result?.items.map((item) => ({
+    result?.data.map((item) => ({
       id: item.id,
       slug: item.slug,
       discipline: item.discipline as CommunityPost["discipline"],
@@ -196,7 +201,7 @@ export function SearchExperience() {
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-lg font-semibold tracking-tight">Search results</h3>
           <p className="text-muted-foreground text-sm">
-            {result ? `${result.total} matches` : "Loading..."}
+            {result ? `${result.meta.total} matches` : "Loading..."}
           </p>
         </div>
 

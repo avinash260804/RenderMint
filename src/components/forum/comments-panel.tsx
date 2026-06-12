@@ -40,17 +40,17 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     });
 
     const payload = (await response.json().catch(() => null)) as {
-      comments?: CommentRecord[];
-      error?: string;
+      data?: CommentRecord[];
+      error?: { message?: string };
     } | null;
 
     if (!response.ok) {
-      setError(payload?.error ?? "Failed to load comments.");
+      setError(payload?.error?.message ?? "Failed to load comments.");
       setLoading(false);
       return;
     }
 
-    setComments(payload?.comments ?? []);
+    setComments(payload?.data ?? []);
     setLoading(false);
   }, [postSlug]);
 
@@ -65,16 +65,16 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
       cache: "no-store",
     });
     const payload = (await response.json().catch(() => null)) as {
-      state?: HelpSolutionState;
-      error?: string;
+      data?: HelpSolutionState;
+      error?: { message?: string };
     } | null;
 
-    if (!response.ok || !payload?.state) {
-      setError(payload?.error ?? "Failed to load solved state.");
+    if (!response.ok || !payload?.data) {
+      setError(payload?.error?.message ?? "Failed to load solved state.");
       return;
     }
 
-    setSolutionState(payload.state);
+    setSolutionState(payload.data);
   }, [isHelpThread, postSlug]);
 
   useEffect(() => {
@@ -95,17 +95,17 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     });
 
     const payload = (await response.json().catch(() => null)) as {
-      comment?: CommentRecord;
-      error?: string;
+      data?: CommentRecord;
+      error?: { message?: string };
     } | null;
 
-    if (!response.ok || !payload?.comment) {
-      setError(payload?.error ?? "Failed to post comment.");
+    if (!response.ok || !payload?.data) {
+      setError(payload?.error?.message ?? "Failed to post comment.");
       setSubmitting(false);
       return;
     }
 
-    setComments((current) => [...current, payload.comment!]);
+    setComments((current) => [...current, payload.data!]);
     setBody("");
     setSubmitting(false);
   }
@@ -127,17 +127,17 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     });
 
     const payload = (await response.json().catch(() => null)) as {
-      state?: HelpSolutionState;
-      error?: string;
+      data?: HelpSolutionState;
+      error?: { message?: string };
     } | null;
 
-    if (!response.ok || !payload?.state) {
-      setError(payload?.error ?? "Failed to update solved status.");
+    if (!response.ok || !payload?.data) {
+      setError(payload?.error?.message ?? "Failed to update solved status.");
       setSolutionLoading(false);
       return;
     }
 
-    setSolutionState(payload.state);
+    setSolutionState(payload.data);
     setSolutionLoading(false);
   }
 

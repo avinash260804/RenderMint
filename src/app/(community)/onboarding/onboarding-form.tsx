@@ -40,8 +40,10 @@ export function OnboardingForm({ disciplines }: OnboardingFormProps) {
     });
 
     if (!response.ok) {
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-      setError(payload?.error ?? "Unable to complete onboarding.");
+      const payload = (await response.json().catch(() => null)) as {
+        error?: { message?: string };
+      } | null;
+      setError(payload?.error?.message ?? "Unable to complete onboarding.");
       setSubmitting(false);
       return;
     }
