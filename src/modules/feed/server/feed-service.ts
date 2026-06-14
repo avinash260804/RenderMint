@@ -1,24 +1,24 @@
 import { Prisma } from "@prisma/client";
 
 import {
-  disciplines as mockDisciplines,
-  getDisciplineBySlug as getMockDisciplineBySlug,
-  getHomeSections,
-  getPostBySlug as getMockPostBySlug,
-  getPostsByDiscipline as getMockPostsByDiscipline,
-  getPostsByType as getMockPostsByType,
+  communityCatalogDisciplines,
+  getCommunityDisciplineBySlug,
+  getCommunityHomeSections,
+  getCommunityPostBySlug,
+  getCommunityPostsByDiscipline,
+  getCommunityPostsByType,
   type CommunityPost,
   type CommunityPostType,
   type DisciplineData,
   type DisciplineSlug,
-} from "@/lib/mock/community-data";
+} from "@/lib/community/catalog";
 import { canAttemptDatabaseQuery } from "@/lib/db/availability";
 import { prisma } from "@/server/db/client";
 import { getPostBySlug as getPersistedPostBySlug } from "@/modules/posts/server/post-service";
 
 export async function getHomeFeed() {
   if (!(await canAttemptDatabaseQuery())) {
-    return getHomeSections();
+    return getCommunityHomeSections();
   }
 
   try {
@@ -53,7 +53,7 @@ export async function getHomeFeed() {
     });
 
     if (posts.length === 0) {
-      return getHomeSections();
+      return getCommunityHomeSections();
     }
 
     const mapped = posts.map(mapPersistedPostToCommunityPost);
@@ -66,13 +66,13 @@ export async function getHomeFeed() {
       weeklyResources: mapped.filter((post) => post.type === "resource"),
     };
   } catch {
-    return getHomeSections();
+    return getCommunityHomeSections();
   }
 }
 
 export async function getDisciplineList(): Promise<DisciplineData[]> {
   if (!(await canAttemptDatabaseQuery())) {
-    return mockDisciplines;
+    return communityCatalogDisciplines;
   }
 
   try {
@@ -91,20 +91,20 @@ export async function getDisciplineList(): Promise<DisciplineData[]> {
     });
 
     if (disciplines.length === 0) {
-      return mockDisciplines;
+      return communityCatalogDisciplines;
     }
 
     return disciplines.map((discipline) => ({
       slug: discipline.slug as DisciplineSlug,
       name: discipline.name,
       description:
-        getMockDisciplineBySlug(discipline.slug)?.description ??
+        getCommunityDisciplineBySlug(discipline.slug)?.description ??
         `${discipline.name} discussions, showcases, critique, resources, and help threads.`,
       softwares: discipline.softwares.map((software) => software.name),
-      trendingTags: getMockDisciplineBySlug(discipline.slug)?.trendingTags ?? [],
+      trendingTags: getCommunityDisciplineBySlug(discipline.slug)?.trendingTags ?? [],
     }));
   } catch {
-    return mockDisciplines;
+    return communityCatalogDisciplines;
   }
 }
 
@@ -112,7 +112,7 @@ export async function getDisciplineFeed(
   slug: string,
   postType?: CommunityPostType,
 ): Promise<{ discipline: DisciplineData | null; posts: CommunityPost[] }> {
-  const fallbackDiscipline = getMockDisciplineBySlug(slug);
+  const fallbackDiscipline = getCommunityDisciplineBySlug(slug);
 
   if (!(await canAttemptDatabaseQuery())) {
     if (!fallbackDiscipline) return { discipline: null, posts: [] };
@@ -120,8 +120,8 @@ export async function getDisciplineFeed(
     return {
       discipline: fallbackDiscipline,
       posts: postType
-        ? getMockPostsByType(postType, slug as DisciplineSlug)
-        : getMockPostsByDiscipline(slug as DisciplineSlug),
+        ? getCommunityPostsByType(postType, slug as DisciplineSlug)
+        : getCommunityPostsByDiscipline(slug as DisciplineSlug),
     };
   }
 
@@ -146,8 +146,8 @@ export async function getDisciplineFeed(
       return {
         discipline: fallbackDiscipline,
         posts: postType
-          ? getMockPostsByType(postType, slug as DisciplineSlug)
-          : getMockPostsByDiscipline(slug as DisciplineSlug),
+          ? getCommunityPostsByType(postType, slug as DisciplineSlug)
+          : getCommunityPostsByDiscipline(slug as DisciplineSlug),
       };
     }
 
@@ -189,8 +189,8 @@ export async function getDisciplineFeed(
       posts.length > 0
         ? posts.map(mapPersistedPostToCommunityPost)
         : postType
-          ? getMockPostsByType(postType, slug as DisciplineSlug)
-          : getMockPostsByDiscipline(slug as DisciplineSlug);
+          ? getCommunityPostsByType(postType, slug as DisciplineSlug)
+          : getCommunityPostsByDiscipline(slug as DisciplineSlug);
 
     return {
       discipline: {
@@ -212,15 +212,15 @@ export async function getDisciplineFeed(
     return {
       discipline: fallbackDiscipline,
       posts: postType
-        ? getMockPostsByType(postType, slug as DisciplineSlug)
-        : getMockPostsByDiscipline(slug as DisciplineSlug),
+        ? getCommunityPostsByType(postType, slug as DisciplineSlug)
+        : getCommunityPostsByDiscipline(slug as DisciplineSlug),
     };
   }
 }
 
 export async function getThreadBySlug(slug: string) {
   if (!(await canAttemptDatabaseQuery())) {
-    return getMockPostBySlug(slug) ?? null;
+    return getCommunityPostBySlug(slug) ?? null;
   }
 
   try {
@@ -242,15 +242,15 @@ export async function getThreadBySlug(slug: string) {
       } satisfies CommunityPost;
     }
   } catch {
-    // Fall through to mock content for current static thread pages.
+    // Fall through to catalog content for current static thread pages.
   }
 
-  return getMockPostBySlug(slug) ?? null;
+  return getCommunityPostBySlug(slug) ?? null;
 }
 
 export async function getThreadStaticSlugs() {
   if (!(await canAttemptDatabaseQuery())) {
-    return getMockThreadSlugs();
+    return getCommunityThreadSlugs();
   }
 
   try {
@@ -268,24 +268,24 @@ export async function getThreadStaticSlugs() {
     });
 
     if (posts.length === 0) {
-      return getMockThreadSlugs();
+      return getCommunityThreadSlugs();
     }
 
     return posts.map((post) => post.slug);
   } catch {
-    return getMockThreadSlugs();
+    return getCommunityThreadSlugs();
   }
 }
 
-function getMockThreadSlugs() {
+function getCommunityThreadSlugs() {
   return Array.from(
     new Set(
       [
-        ...getHomeSections().trendingDiscussions,
-        ...getHomeSections().critiqueRequests,
-        ...getHomeSections().featuredShowcases,
-        ...getHomeSections().solvedHelp,
-        ...getHomeSections().weeklyResources,
+        ...getCommunityHomeSections().trendingDiscussions,
+        ...getCommunityHomeSections().critiqueRequests,
+        ...getCommunityHomeSections().featuredShowcases,
+        ...getCommunityHomeSections().solvedHelp,
+        ...getCommunityHomeSections().weeklyResources,
       ].map((post) => post.slug),
     ),
   );
@@ -326,7 +326,7 @@ function mapPersistedPostToCommunityPost(
     author: post.author.username,
     bodyPreview: post.body ?? undefined,
     createdAt: post.createdAt.toISOString(),
-    tags: post.postTags.map((entry) => entry.tag.slug),
+    tags: post.postTags.flatMap((entry) => (entry.tag.slug ? [entry.tag.slug] : [])),
     replyCount: post.commentCount,
     engagement: post.voteCount > 10 ? "High engagement" : "Active",
     feedbackRequested: post.feedbackRequested ?? undefined,

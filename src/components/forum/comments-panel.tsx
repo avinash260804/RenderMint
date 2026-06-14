@@ -142,7 +142,7 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
   }
 
   return (
-    <Card className="border-border/70 bg-card/80 rounded-2xl">
+    <Card data-testid="comments-panel" className="border-border/70 bg-card/80 rounded-2xl">
       <CardHeader>
         <CardTitle className="text-lg">Comments</CardTitle>
       </CardHeader>

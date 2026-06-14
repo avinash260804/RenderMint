@@ -1,63 +1,66 @@
--- =============================================================================
--- ATELIER — pgTAP RLS: Comments Table (RLS-06 to RLS-09)
--- File: tests/rls/02_comments_rls.sql
--- Run: npx supabase test db
--- =============================================================================
-
 BEGIN;
+
 SELECT plan(4);
 
--- ── Fixtures ─────────────────────────────────────────────────────────────────
-INSERT INTO auth.users (id, email) VALUES ('rls-cm-u1','rlscm1@t.com'),('rls-cm-u2','rlscm2@t.com') ON CONFLICT DO NOTHING;
-INSERT INTO disciplines (id,slug,name) VALUES ('rls-cm-d1','rls-cm-disc','RLS Cm Disc') ON CONFLICT DO NOTHING;
-INSERT INTO profiles (id,username,onboarded,discipline_id)
-  VALUES ('rls-cm-u1','rlscm1',true,'rls-cm-d1'),('rls-cm-u2','rlscm2',true,'rls-cm-d1') ON CONFLICT DO NOTHING;
-INSERT INTO posts (id,title,slug,content,type,author_id,discipline_id,vote_count,comment_count)
-  VALUES ('rls-cm-p1','CM Post','rls-cm-post','Body','DISCUSSION','rls-cm-u1','rls-cm-d1',0,0) ON CONFLICT DO NOTHING;
-INSERT INTO comments (id,content,post_id,author_id,vote_count)
-  VALUES ('rls-c-live','Live comment','rls-cm-p1','rls-cm-u2',0),
-         ('rls-c-del', 'Deleted comment','rls-cm-p1','rls-cm-u2',0) ON CONFLICT DO NOTHING;
-UPDATE comments SET deleted_at = NOW() WHERE id = 'rls-c-del';
+INSERT INTO auth.users (id, email)
+VALUES
+  ('00000000-0000-0000-0000-000000002101', 'rlscm1@test.com'),
+  ('00000000-0000-0000-0000-000000002102', 'rlscm2@test.com')
+ON CONFLICT DO NOTHING;
 
--- RLS-06: Anon can read non-deleted comments
+INSERT INTO disciplines (id, slug, name)
+VALUES (9201, 'rls-cm-disc', 'RLS Comment Disc')
+ON CONFLICT DO NOTHING;
+
+INSERT INTO profiles (id, username, onboarded, discipline_id, updated_at)
+VALUES
+  ('00000000-0000-0000-0000-000000002101', 'rlscm1', true, 9201, now()),
+  ('00000000-0000-0000-0000-000000002102', 'rlscm2', true, 9201, now())
+ON CONFLICT DO NOTHING;
+
+INSERT INTO posts (id, title, slug, body, post_type, author_id, discipline_id, updated_at)
+VALUES ('00000000-0000-0000-0000-000000002201', 'Comment Post', 'rls-cm-post', 'Body', 'discussion', '00000000-0000-0000-0000-000000002101', 9201, now())
+ON CONFLICT DO NOTHING;
+
+INSERT INTO comments (id, body, post_id, author_id, updated_at)
+VALUES
+  ('00000000-0000-0000-0000-000000002301', 'Live comment', '00000000-0000-0000-0000-000000002201', '00000000-0000-0000-0000-000000002102', now()),
+  ('00000000-0000-0000-0000-000000002302', 'Deleted comment', '00000000-0000-0000-0000-000000002201', '00000000-0000-0000-0000-000000002102', now())
+ON CONFLICT DO NOTHING;
+
+UPDATE comments SET deleted_at = now() WHERE id = '00000000-0000-0000-0000-000000002302';
+
 SET LOCAL ROLE anon;
 SELECT results_eq(
-  $$ SELECT count(*)::int FROM comments WHERE id = 'rls-c-live' $$,
+  $$ SELECT count(*)::int FROM comments WHERE id = '00000000-0000-0000-0000-000000002301' $$,
   $$ VALUES (1) $$,
   'RLS-06: anon can read non-deleted comments'
 );
 
--- RLS-07: Anon cannot read soft-deleted comments
 SELECT results_eq(
-  $$ SELECT count(*)::int FROM comments WHERE id = 'rls-c-del' $$,
+  $$ SELECT count(*)::int FROM comments WHERE id = '00000000-0000-0000-0000-000000002302' $$,
   $$ VALUES (0) $$,
   'RLS-07: anon cannot read soft-deleted comments'
 );
 
--- RLS-08: Authenticated onboarded user can INSERT comment
 SET LOCAL ROLE authenticated;
-SET LOCAL "request.jwt.claims" TO '{"sub":"rls-cm-u2"}';
+SET LOCAL "request.jwt.claim.sub" = '00000000-0000-0000-0000-000000002102';
 SELECT lives_ok(
-  $$ INSERT INTO comments (id,content,post_id,author_id,vote_count)
-     VALUES ('rls-c-new','Auth comment','rls-cm-p1','rls-cm-u2',0) $$,
-  'RLS-08: authenticated user can INSERT comment'
+  $$ INSERT INTO comments (id, body, post_id, author_id, updated_at)
+     VALUES ('00000000-0000-0000-0000-000000002303', 'Auth comment', '00000000-0000-0000-0000-000000002201', '00000000-0000-0000-0000-000000002102', now()) $$,
+  'RLS-08: authenticated user can INSERT own comment'
 );
 
--- RLS-09: Anon cannot INSERT comment
 SET LOCAL ROLE anon;
 SELECT throws_ok(
-  $$ INSERT INTO comments (id,content,post_id,author_id,vote_count)
-     VALUES ('rls-c-anon','Anon comment','rls-cm-p1','rls-cm-u1',0) $$,
+  $$ INSERT INTO comments (id, body, post_id, author_id, updated_at)
+     VALUES ('00000000-0000-0000-0000-000000002304', 'Anon comment', '00000000-0000-0000-0000-000000002201', '00000000-0000-0000-0000-000000002101', now()) $$,
+  '42501',
+  NULL,
   'RLS-09: anon is blocked from inserting comments'
 );
 
--- ── Teardown ──────────────────────────────────────────────────────────────────
 RESET ROLE;
-DELETE FROM comments    WHERE id LIKE 'rls-c%';
-DELETE FROM posts       WHERE id LIKE 'rls-cm-%';
-DELETE FROM profiles    WHERE id LIKE 'rls-cm-%';
-DELETE FROM auth.users  WHERE id LIKE 'rls-cm-%';
-DELETE FROM disciplines WHERE id LIKE 'rls-cm-%';
-
 SELECT * FROM finish();
+
 ROLLBACK;

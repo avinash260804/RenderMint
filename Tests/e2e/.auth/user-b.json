@@ -1,0 +1,15 @@
+{
+  "cookies": [
+    {
+      "name": "sb-access-token",
+      "value": "replace-with-user-b-session-token",
+      "domain": "localhost",
+      "path": "/",
+      "expires": 1781435181,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

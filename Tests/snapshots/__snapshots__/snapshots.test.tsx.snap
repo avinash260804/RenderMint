@@ -1,0 +1,289 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Snapshot Tests > SN-01: Hero page — desktop baseline 1`] = `
+<div>
+  <main>
+    <h1>
+      Atelier for design communities
+    </h1>
+    <p>
+      Discuss, critique, showcase, and solve with structured design spaces.
+    </p>
+    <a
+      href="/signup"
+    >
+      Get Started
+    </a>
+    <section
+      aria-label="Disciplines"
+    >
+      <span>
+        Graphic Design
+      </span>
+      <span>
+        Motion Design
+      </span>
+    </section>
+    <section
+      aria-label="Stats"
+    >
+      <strong>
+        1,200
+      </strong>
+      <strong>
+        3,400
+      </strong>
+      <strong>
+        8
+      </strong>
+    </section>
+  </main>
+</div>
+`;
+
+exports[`Snapshot Tests > SN-02: Dashboard — authenticated state with mock profile + feed 1`] = `
+<div>
+  <main>
+    <h1>
+      Welcome, 
+      alice
+    </h1>
+    <p>
+      Graphic Design
+    </p>
+    <p>
+      Reputation 
+      450
+    </p>
+    <a
+      href="/create"
+    >
+      New Post
+    </a>
+    <section>
+      <article>
+        <h2>
+          Test Post
+        </h2>
+      </article>
+    </section>
+  </main>
+</div>
+`;
+
+exports[`Snapshot Tests > SN-03: Thread page — with SOLVED badge (HELP post, accepted answer) 1`] = `
+<div>
+  <main>
+    <h1>
+      Test Post
+    </h1>
+    <span>
+      HELP
+    </span>
+    <strong>
+      Solved
+    </strong>
+    <p>
+      Post body
+    </p>
+    <section>
+      <article>
+        First comment
+      </article>
+    </section>
+  </main>
+</div>
+`;
+
+exports[`Snapshot Tests > SN-04: Thread page — without SOLVED badge (DISCUSSION post) 1`] = `
+<div>
+  <main>
+    <h1>
+      Test Post
+    </h1>
+    <span>
+      DISCUSSION
+    </span>
+    <p>
+      Post body
+    </p>
+    <section>
+      <article>
+        First comment
+      </article>
+    </section>
+  </main>
+</div>
+`;
+
+exports[`Snapshot Tests > SN-05: Profile page — full data state 1`] = `
+<div>
+  <main>
+    <h1>
+      alice
+    </h1>
+    <p>
+      Designer
+    </p>
+    <strong>
+      Graphic Design
+    </strong>
+    <p>
+      Reputation 
+      450
+    </p>
+    <section>
+      <span>
+        Typography
+      </span>
+    </section>
+    <section>
+      <span>
+        Figma
+      </span>
+    </section>
+  </main>
+</div>
+`;
+
+exports[`Snapshot Tests > SN-06: Post creation form — empty state 1`] = `
+<div>
+  <form>
+    <label>
+      Title
+      <input
+        value=""
+      />
+    </label>
+    <label>
+      Discipline
+      <select>
+        <option
+          value=""
+        >
+          Select discipline
+        </option>
+        <option
+          value="d-1"
+        >
+          Graphic Design
+        </option>
+        <option
+          value="d-2"
+        >
+          Motion Design
+        </option>
+      </select>
+    </label>
+    <label>
+      Content
+      <textarea />
+    </label>
+    <label>
+      Post type
+      <select>
+        <option
+          value="DISCUSSION"
+        >
+          DISCUSSION
+        </option>
+        <option
+          value="HELP"
+        >
+          HELP
+        </option>
+        <option
+          value="CRITIQUE"
+        >
+          CRITIQUE
+        </option>
+        <option
+          value="SHOWCASE"
+        >
+          SHOWCASE
+        </option>
+        <option
+          value="RESOURCE"
+        >
+          RESOURCE
+        </option>
+      </select>
+    </label>
+    <input
+      aria-label="Tags"
+      placeholder="Tags"
+      value=""
+    />
+    <button
+      disabled=""
+      type="submit"
+    >
+      Publish Post
+    </button>
+  </form>
+</div>
+`;
+
+exports[`Snapshot Tests > SN-07: Vote control — upvoted state 1`] = `
+<div>
+  <div>
+    <button
+      aria-label="upvote"
+    >
+      Upvote
+    </button>
+    <span>
+      7
+    </span>
+    <button
+      aria-label="downvote"
+    >
+      Downvote
+    </button>
+  </div>
+</div>
+`;
+
+exports[`Snapshot Tests > SN-08: Search results — with 3 result cards 1`] = `
+<div>
+  <section>
+    <h1>
+      Search results for 
+      test
+    </h1>
+    <article>
+      <h2>
+        Result One
+      </h2>
+      <span>
+        DISCUSSION
+      </span>
+      <p>
+        Post body
+      </p>
+    </article>
+    <article>
+      <h2>
+        Result Two
+      </h2>
+      <span>
+        DISCUSSION
+      </span>
+      <p>
+        Post body
+      </p>
+    </article>
+    <article>
+      <h2>
+        Result Three
+      </h2>
+      <span>
+        DISCUSSION
+      </span>
+      <p>
+        Post body
+      </p>
+    </article>
+  </section>
+</div>
+`;

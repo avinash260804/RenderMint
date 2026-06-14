@@ -3,6 +3,21 @@ type CursorPayload = {
   createdAt: string;
 };
 
+type PaginationInput = {
+  page?: number;
+  limit?: number;
+};
+
+export function getPaginationParams(input: PaginationInput) {
+  const page = Math.max(1, Math.floor(input.page ?? 1));
+  const take = Math.min(Math.max(Math.floor(input.limit ?? 20), 1), 100);
+
+  return {
+    skip: (page - 1) * take,
+    take,
+  };
+}
+
 export function encodeCursor(payload: CursorPayload) {
   return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
 }

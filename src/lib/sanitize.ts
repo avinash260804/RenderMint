@@ -1,5 +1,9 @@
 export function sanitizeText(input: string) {
-  return input.replace(/<[^>]*>/g, "").trim();
+  return input.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<[^>]*>/g, "").trim();
+}
+
+export function sanitizeHtml(input: string) {
+  return sanitizeText(input);
 }
 
 export function sanitizeUrl(input: string) {

@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { decodeCursor, encodeCursor } from "@/lib/pagination";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
-import { generateSlug } from "@/lib/slug";
+import { generateSlug, generateUniqueSlug as buildUniqueSlug } from "@/lib/slug";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import type { PostCreationValidated } from "@/modules/posts/schemas/post-creation-schema";
 import type {
@@ -332,19 +332,10 @@ export async function deletePost(postId: string, authorId: string) {
 }
 
 async function generateUniqueSlug(title: string) {
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    const slug = generateSlug(title);
-    const existing = await prisma.post.findUnique({
-      where: { slug },
-      select: { id: true },
-    });
-
-    if (!existing) {
-      return slug;
-    }
-  }
-
-  throw new ConflictError("Unable to generate a unique slug for this post.");
+  return buildUniqueSlug(title, {
+    checkExists: async (slug) =>
+      Boolean(await prisma.post.findUnique({ where: { slug }, select: { id: true } })),
+  });
 }
 
 async function syncPostTags(postId: string, tagInput: string) {

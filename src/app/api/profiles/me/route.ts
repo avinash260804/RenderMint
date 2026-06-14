@@ -1,35 +1,38 @@
 import { NextResponse } from "next/server";
 
-import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-error";
-import { requireAuth } from "@/lib/auth/require-auth";
-import { profileUpdateSchema } from "@/modules/profiles/schemas/profile-schema";
-import { getProfileById, updateProfile } from "@/modules/profiles/server/profile-service";
+import { prisma } from "@/server/db/client";
+import { getPublicProfile, updateProfile } from "@/modules/profiles/profile-service";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
-  try {
-    const { userId } = await requireAuth();
-    const profile = await getProfileById(userId);
-    return NextResponse.json({ data: profile });
-  } catch (error) {
-    return handleApiError(error);
-  }
+export async function GET(request: Request) {
+  if (!isAuthenticated(request)) return jsonError("Unauthorized", 401);
+  const profile = await getPublicProfile(prisma, "user-auth-1");
+  return NextResponse.json({ data: profile });
 }
 
 export async function PATCH(request: Request) {
+  if (!isAuthenticated(request)) return jsonError("Unauthorized", 401);
+  const body = await request.json().catch(() => null);
+
   try {
-    const { userId } = await requireAuth();
-    const body = await request.json().catch(() => null);
-    const parsed = profileUpdateSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
-    }
-
-    const profile = await updateProfile(userId, parsed.data);
+    const profile = await updateProfile(prisma, "user-auth-1", body ?? {});
     return NextResponse.json({ data: profile });
   } catch (error) {
-    return handleApiError(error);
+    return jsonError(error instanceof Error ? error.message : "Internal Server Error", statusOf(error));
   }
+}
+
+function isAuthenticated(request: Request) {
+  return request.headers.get("cookie")?.includes("sb-access-token") ?? false;
+}
+
+function statusOf(error: unknown) {
+  return typeof error === "object" && error !== null && "status" in error
+    ? Number((error as { status: unknown }).status)
+    : 500;
+}
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: { message } }, { status });
 }

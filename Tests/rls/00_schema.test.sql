@@ -1,0 +1,1 @@
+\ir ../schema.test.sql

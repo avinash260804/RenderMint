@@ -32,6 +32,60 @@ Result:
 - The harness rejected explicit escalation in this session.
 - This audit therefore uses the repository `Tests/` folder and records the prompt access limitation.
 
+Project-local prompt retry:
+
+`C:\Users\aviro\OneDrive\Documents\New project\Tests\CODEX_PROMPT.md`
+
+Result:
+
+- Prompt file is now present and readable.
+- Prompt title: `CODEX — Atelier Test Suite Execution Prompt`
+- Prompt describes a 310-test, 19-category master suite for a Next.js 14 App Router app using Prisma, Supabase RLS, Vitest, Playwright, React Testing Library, MSW, Prismock, and pgTAP.
+- Prompt expects tests to be copied from an `atelier-tests/` source layout into specific project paths before execution.
+- Prompt explicitly states tests define the contract and production code should be fixed instead of rewriting/skipping tests.
+
+## GitHub Repository Access
+
+Requested repository:
+
+`https://github.com/avinash260804/Tests`
+
+Access attempts:
+
+```bash
+git ls-remote https://github.com/avinash260804/Tests.git
+```
+
+Result:
+
+```text
+fatal: unable to access 'https://github.com/avinash260804/Tests.git/':
+Failed to connect to github.com port 443 after 16 ms: Could not connect to server
+```
+
+Additional raw GitHub/web fetch attempts also failed in this environment.
+
+Local prompt check:
+
+- No `CODEX_PROMPT.md` or Markdown prompt file was found inside the local `Tests/` folder.
+- The local `Tests/` folder remains the only readable test source available to this audit.
+
+Project-directory retry:
+
+```powershell
+Get-ChildItem -Force -Recurse -Path 'Tests' -Include '*PROMPT*','*.md'
+```
+
+Result:
+
+- No prompt or Markdown files were found.
+- `Tests\CODEX_PROMPT.md` does not exist.
+
+Superseded by latest check:
+
+- `Tests\CODEX_PROMPT.md` now exists.
+- The prompt has been read from the project-local `Tests/` folder.
+
 ## Test Folder Inventory
 
 Detected folder:
@@ -59,6 +113,83 @@ Main categories:
 - MSW helpers
 - Prismock helpers
 - Build/static-analysis/schema shell scripts
+
+## Prompt Requirements Versus Current Repo State
+
+The prompt expects the tests to be moved/copied into these project locations:
+
+- config files at repository root: `vitest.config.ts`, `playwright.config.ts`
+- setup files under lowercase `tests/`
+- unit tests under `src/lib/__tests__` and `src/modules/*/__tests__`
+- API tests under `src/app/api/__tests__`
+- component tests under `src/__tests__/components`
+- integration, snapshots, forms, RLS, and E2E tests under lowercase `tests/`
+- scripts under `tests/scripts`
+
+Current local state:
+
+- Files are currently flat under uppercase `Tests/`.
+- No root `vitest.config.ts` exists.
+- No root `playwright.config.ts` exists.
+- No lowercase `tests/scripts` structure exists.
+- No test dependencies are installed.
+- Root `tsconfig.json` includes `**/*.ts` and `**/*.tsx`, so the flat `Tests/` folder is compiled as production app TypeScript.
+
+Important interpretation:
+
+- The current `Tests/` folder is a source/import staging folder, not a runnable integrated test suite in its present shape.
+- Running `npm run typecheck` or `npm run build` before isolating or relocating the tests will fail.
+- The correct first integration step is to keep production build isolated, then copy/adapt tests into the prompt's expected layout.
+
+## Prompt Dependency Requirements
+
+The prompt requires installing:
+
+```bash
+npm install -D vitest @vitejs/plugin-react jsdom vite-tsconfig-paths
+npm install -D @testing-library/react @testing-library/user-event @testing-library/jest-dom
+npm install -D prismock msw uuid
+npm install -D @vitest/coverage-v8
+npm install -D @playwright/test @axe-core/playwright
+npm install -D supabase
+npx playwright install --with-deps chromium
+```
+
+Current dependency state:
+
+- None of the listed test-runner packages are installed.
+- The local environment has also previously shown network restrictions, so dependency installation may need to be run from the user's normal terminal.
+
+## Prompt Script Requirements
+
+The prompt requires adding scripts for:
+
+- `test`
+- `test:watch`
+- `test:unit`
+- `test:integration`
+- `test:api`
+- `test:components`
+- `test:forms`
+- `test:snapshots`
+- `test:coverage`
+- `test:e2e`
+- `test:e2e:security`
+- `test:e2e:errors`
+- `test:a11y`
+- `test:perf`
+- `test:visual`
+- `test:rls`
+- `test:static`
+- `test:schema`
+- `test:build-ci`
+- `test:all`
+- updated `verify`
+
+Current state:
+
+- These scripts have not been added yet.
+- `npm run test` currently fails with `Missing script: "test"`.
 
 ## Existing Project Scripts
 

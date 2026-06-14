@@ -6,7 +6,7 @@ import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { PostGrid } from "@/components/forum/post-grid";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import type { CommunityPost, CommunityPostType, DisciplineData } from "@/lib/mock/community-data";
+import type { CommunityPost, CommunityPostType, DisciplineData } from "@/lib/community/catalog";
 
 type SearchApiResponse = {
   data: Array<{
@@ -35,11 +35,17 @@ type SearchExperienceProps = {
 };
 
 export function SearchExperience({ disciplines }: SearchExperienceProps) {
-  const [q, setQ] = useState("");
-  const [discipline, setDiscipline] = useState("");
+  const initialParams =
+    typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
+  const [q, setQ] = useState(initialParams.get("q") ?? "");
+  const [discipline, setDiscipline] = useState(initialParams.get("discipline") ?? "");
   const [software, setSoftware] = useState("");
-  const [postType, setPostType] = useState<"" | CommunityPostType>("");
-  const [solved, setSolved] = useState<"" | "true" | "false">("");
+  const [postType, setPostType] = useState<"" | CommunityPostType>(
+    (initialParams.get("postType") as CommunityPostType | null) ?? "",
+  );
+  const [solved, setSolved] = useState<"" | "true" | "false">(
+    (initialParams.get("solved") as "true" | "false" | null) ?? "",
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<SearchApiResponse | null>(null);
@@ -218,11 +224,13 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
             {error}
           </div>
         ) : (
-          <PostGrid
-            posts={posts}
-            emptyTitle="No search matches"
-            emptyDescription="Try broadening filters or searching with fewer keywords."
-          />
+          <div data-testid={posts.length > 0 ? "search-results" : "empty-search"}>
+            <PostGrid
+              posts={posts}
+              emptyTitle="No search matches"
+              emptyDescription="Try broadening filters or searching with fewer keywords."
+            />
+          </div>
         )}
       </section>
     </div>

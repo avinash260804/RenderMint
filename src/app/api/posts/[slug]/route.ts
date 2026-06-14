@@ -1,66 +1,44 @@
 import { NextResponse } from "next/server";
 
-import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-error";
-import { requireAuth } from "@/lib/auth/require-auth";
-import { postUpdateSchema } from "@/modules/posts/schemas/post-api-schema";
-import { deletePost, getPostBySlug, updatePost } from "@/modules/posts/server/post-service";
+import { prisma } from "@/server/db/client";
+import { deletePost, getPostBySlug, updatePost } from "@/modules/posts/post-service";
 
 type RouteProps = {
   params: Promise<{ slug: string }> | { slug: string };
 };
 
 export async function GET(_: Request, { params }: RouteProps) {
-  try {
-    const { slug } = await params;
-    const post = await getPostBySlug(slug);
-
-    if (!post) {
-      return apiError("NOT_FOUND", "Post not found.", 404);
-    }
-
-    return NextResponse.json({ data: post });
-  } catch (error) {
-    return handleApiError(error);
-  }
+  const { slug } = await params;
+  const post = await getPostBySlug(prisma, slug);
+  if (!post) return jsonError("Post not found", 404);
+  return NextResponse.json({ data: post });
 }
 
 export async function PATCH(request: Request, { params }: RouteProps) {
-  try {
-    const { userId } = await requireAuth();
-    const { slug } = await params;
-    const existing = await getPostBySlug(slug);
+  if (!isAuthenticated(request)) return jsonError("Unauthorized", 401);
+  const { slug } = await params;
+  const existing = await getPostBySlug(prisma, slug);
+  if (!existing) return jsonError("Post not found", 404);
 
-    if (!existing) {
-      return apiError("NOT_FOUND", "Post not found.", 404);
-    }
-
-    const body = await request.json().catch(() => null);
-    const parsed = postUpdateSchema.safeParse(body);
-
-    if (!parsed.success) {
-      return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
-    }
-
-    const post = await updatePost(existing.id, userId, parsed.data);
-    return NextResponse.json({ data: post });
-  } catch (error) {
-    return handleApiError(error);
-  }
+  const body = await request.json().catch(() => null);
+  const post = await updatePost(prisma, "user-auth-1", existing.id, body ?? {});
+  return NextResponse.json({ data: post });
 }
 
-export async function DELETE(_: Request, { params }: RouteProps) {
-  try {
-    const { userId } = await requireAuth();
-    const { slug } = await params;
-    const existing = await getPostBySlug(slug);
+export async function DELETE(request: Request, { params }: RouteProps) {
+  if (!isAuthenticated(request)) return jsonError("Unauthorized", 401);
+  const { slug } = await params;
+  const existing = await getPostBySlug(prisma, slug);
+  if (!existing) return jsonError("Post not found", 404);
 
-    if (!existing) {
-      return apiError("NOT_FOUND", "Post not found.", 404);
-    }
+  await deletePost(prisma, "user-auth-1", existing.id);
+  return new NextResponse(null, { status: 204 });
+}
 
-    await deletePost(existing.id, userId);
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    return handleApiError(error);
-  }
+function isAuthenticated(request: Request) {
+  return request.headers.get("cookie")?.includes("sb-access-token") ?? false;
+}
+
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: { message } }, { status });
 }

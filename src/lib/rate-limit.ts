@@ -15,14 +15,22 @@ if (!globalRateLimitStore.sprintRateLimitStore) {
   globalRateLimitStore.sprintRateLimitStore = store;
 }
 
-export function checkRateLimit(key: string, limit: number, windowMs: number) {
+type RateLimitOptions = {
+  max: number;
+  windowMs: number;
+};
+
+export function checkRateLimit(key: string, limitOrOptions: number | RateLimitOptions, windowMs?: number) {
+  const limit = typeof limitOrOptions === "number" ? limitOrOptions : limitOrOptions.max;
+  const resolvedWindowMs =
+    typeof limitOrOptions === "number" ? (windowMs ?? 60_000) : limitOrOptions.windowMs;
   const now = Date.now();
   const current = store.get(key);
 
   if (!current || current.resetAt <= now) {
     const nextState = {
       count: 1,
-      resetAt: now + windowMs,
+      resetAt: now + resolvedWindowMs,
     };
 
     store.set(key, nextState);

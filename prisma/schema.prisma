@@ -32,14 +32,17 @@ enum VoteType {
 }
 
 model Profile {
-  id                String            @id @db.Uuid
+  id                String            @id @default(uuid()) @db.Uuid
   username          String            @unique @db.VarChar(32)
   avatarUrl         String?           @map("avatar_url")
   bio               String?           @db.VarChar(300)
   primaryDiscipline String?           @map("primary_discipline") @db.VarChar(64)
+  onboarded         Boolean           @default(false)
+  disciplineId      Int?              @map("discipline_id")
   reputation        Int               @default(0)
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
+  discipline        Discipline?       @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
   posts             Post[]
   comments          Comment[]
   votes             Vote[]
@@ -56,6 +59,8 @@ model Discipline {
   createdAt DateTime   @default(now()) @map("created_at")
   softwares Software[]
   posts     Post[]
+  profiles  Profile[]
+  tags      Tag[]
 
   @@map("disciplines")
 }
@@ -172,11 +177,14 @@ model Comment {
 }
 
 model Tag {
-  id        Int       @id @default(autoincrement())
-  name      String    @unique @db.VarChar(64)
-  slug      String    @unique @db.VarChar(64)
-  createdAt DateTime  @default(now()) @map("created_at")
-  postTags  PostTag[]
+  id           Int         @id @default(autoincrement())
+  name         String      @unique @db.VarChar(64)
+  slug         String?     @unique @db.VarChar(64)
+  usageCount   Int         @default(0) @map("usage_count")
+  disciplineId Int?        @map("discipline_id")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  discipline   Discipline? @relation(fields: [disciplineId], references: [id], onDelete: SetNull)
+  postTags     PostTag[]
 
   @@map("tags")
 }
@@ -200,6 +208,7 @@ model Vote {
   postId     String?        @map("post_id") @db.Uuid
   commentId  String?        @map("comment_id") @db.Uuid
   voteType   VoteType       @default(up) @map("vote_type")
+  direction  String?        @db.VarChar(8)
   createdAt  DateTime       @default(now()) @map("created_at")
   author     Profile        @relation(fields: [authorId], references: [id], onDelete: Cascade)
   post       Post?          @relation(fields: [postId], references: [id], onDelete: Cascade)

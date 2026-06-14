@@ -1,18 +1,18 @@
-import { getPostBySlug as getMockPostBySlug } from "@/lib/mock/community-data";
+import { getCommunityPostBySlug } from "@/lib/community/catalog";
 import { canAttemptDatabaseQuery } from "@/lib/db/availability";
 import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { HelpSolutionState } from "@/modules/help/schemas/help-solution-schema";
 import {
-  getHelpSolutionState as getLegacyHelpSolutionState,
-  setHelpSolution as setLegacyHelpSolution,
+  getHelpSolutionState as getFallbackHelpSolutionState,
+  setHelpSolution as setFallbackHelpSolution,
 } from "@/modules/help/server/help-solution-store";
 import { prisma } from "@/server/db/client";
 
 export async function getHelpSolutionState(postSlug: string): Promise<HelpSolutionState> {
   if (!(await canAttemptDatabaseQuery())) {
-    const mockPost = getMockPostBySlug(postSlug);
-    if (mockPost?.type === "help") {
-      return getLegacyHelpSolutionState(postSlug);
+    const catalogPost = getCommunityPostBySlug(postSlug);
+    if (catalogPost?.type === "help") {
+      return getFallbackHelpSolutionState(postSlug);
     }
 
     throw new NotFoundError("Help thread not found.");
@@ -42,15 +42,15 @@ export async function getHelpSolutionState(postSlug: string): Promise<HelpSoluti
       };
     }
   } catch {
-    const mockPost = getMockPostBySlug(postSlug);
-    if (mockPost?.type === "help") {
-      return getLegacyHelpSolutionState(postSlug);
+    const catalogPost = getCommunityPostBySlug(postSlug);
+    if (catalogPost?.type === "help") {
+      return getFallbackHelpSolutionState(postSlug);
     }
   }
 
-  const mockPost = getMockPostBySlug(postSlug);
-  if (mockPost?.type === "help") {
-    return getLegacyHelpSolutionState(postSlug);
+  const catalogPost = getCommunityPostBySlug(postSlug);
+  if (catalogPost?.type === "help") {
+    return getFallbackHelpSolutionState(postSlug);
   }
 
   throw new NotFoundError("Help thread not found.");
@@ -58,9 +58,9 @@ export async function getHelpSolutionState(postSlug: string): Promise<HelpSoluti
 
 export async function setHelpSolution(postSlug: string, commentId: string | null, userId: string) {
   if (!(await canAttemptDatabaseQuery())) {
-    const mockPost = getMockPostBySlug(postSlug);
-    if (mockPost?.type === "help") {
-      return setLegacyHelpSolution(postSlug, commentId);
+    const catalogPost = getCommunityPostBySlug(postSlug);
+    if (catalogPost?.type === "help") {
+      return setFallbackHelpSolution(postSlug, commentId);
     }
 
     throw new NotFoundError("Help thread not found.");
@@ -140,15 +140,15 @@ export async function setHelpSolution(postSlug: string, commentId: string | null
       } satisfies HelpSolutionState;
     }
   } catch {
-    const mockPost = getMockPostBySlug(postSlug);
-    if (mockPost?.type === "help") {
-      return setLegacyHelpSolution(postSlug, commentId);
+    const catalogPost = getCommunityPostBySlug(postSlug);
+    if (catalogPost?.type === "help") {
+      return setFallbackHelpSolution(postSlug, commentId);
     }
   }
 
-  const mockPost = getMockPostBySlug(postSlug);
-  if (mockPost?.type === "help") {
-    return setLegacyHelpSolution(postSlug, commentId);
+  const catalogPost = getCommunityPostBySlug(postSlug);
+  if (catalogPost?.type === "help") {
+    return setFallbackHelpSolution(postSlug, commentId);
   }
 
   throw new NotFoundError("Help thread not found.");

@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { canAttemptDatabaseQuery } from "@/lib/db/availability";
+import { communityCatalogPosts, type CommunityPost } from "@/lib/community/catalog";
 import type { SearchQuery, SearchResultItem } from "@/modules/search/schemas/search-schema";
 import { prisma } from "@/server/db/client";
 
@@ -35,13 +36,14 @@ const MAX_SEARCH_CANDIDATES = 200;
 
 export async function searchPosts(query: SearchQuery): Promise<SearchPayload> {
   if (!(await canAttemptDatabaseQuery())) {
-    return emptySearchPayload(query);
+    return performCatalogSearch(query);
   }
 
   try {
-    return await performDatabaseSearch(query);
+    const databaseResults = await performDatabaseSearch(query);
+    return databaseResults.total > 0 ? databaseResults : performCatalogSearch(query);
   } catch {
-    return emptySearchPayload(query);
+    return performCatalogSearch(query);
   }
 }
 
@@ -174,7 +176,7 @@ function mapPostToSearchResult(post: SearchPostRecord, tokens: string[]): Search
       post.resourceExplanation ??
       post.context,
   );
-  const tags = post.postTags.map((entry) => entry.tag.slug);
+  const tags = post.postTags.flatMap((entry) => (entry.tag.slug ? [entry.tag.slug] : []));
   const searchable = [
     post.title,
     post.body ?? "",
@@ -214,12 +216,76 @@ function mapPostToSearchResult(post: SearchPostRecord, tokens: string[]): Search
   };
 }
 
-function emptySearchPayload(query: SearchQuery): SearchPayload {
+function performCatalogSearch(query: SearchQuery): SearchPayload {
+  const queryText = (query.q ?? "").toLowerCase();
+  const tokens = tokenize(queryText);
+
+  const scored = communityCatalogPosts
+    .filter((post) => {
+      if (query.discipline && post.discipline !== query.discipline) return false;
+      if (query.postType && post.type !== query.postType) return false;
+      if (query.solved === "true" && !(post.type === "help" && post.solved)) return false;
+      if (query.solved === "false" && post.type === "help" && post.solved) return false;
+      if (query.software && normalizeSlug(post.software ?? "") !== normalizeSlug(query.software)) {
+        return false;
+      }
+
+      return true;
+    })
+    .map((post) => mapCatalogPostToSearchResult(post, tokens))
+    .filter((post) => (tokens.length === 0 ? true : post.score > 0));
+
+  scored.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    return b.createdAt.localeCompare(a.createdAt);
+  });
+
+  const total = scored.length;
+  const start = (query.page - 1) * query.pageSize;
+  const end = start + query.pageSize;
+
   return {
-    total: 0,
+    total,
     page: query.page,
     pageSize: query.pageSize,
-    items: [],
+    items: scored.slice(start, end),
+  };
+}
+
+function mapCatalogPostToSearchResult(post: CommunityPost, tokens: string[]): SearchResultItem {
+  const tags = post.tags ?? [];
+  const searchable = [
+    post.title,
+    post.bodyPreview ?? "",
+    post.discipline,
+    post.software ?? "",
+    post.type,
+    post.feedbackRequested ?? "",
+    post.resourceType ?? "",
+    ...(post.tools ?? []),
+    ...tags,
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  const relevance = scoreRelevance(tokens, searchable, post.title.toLowerCase());
+  const solvedBoost = post.type === "help" && post.solved ? 20 : 0;
+  const engagementBoost =
+    (post.replyCount ?? 0) + (post.answerCount ?? 0) + (post.iterationCount ?? 0);
+  const freshnessBoost = scoreFreshness(new Date(post.createdAt));
+
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    discipline: post.discipline,
+    software: post.software,
+    postType: post.type,
+    solved: post.solved ?? false,
+    tags,
+    bodyPreview: post.bodyPreview ?? "",
+    score: relevance + solvedBoost + engagementBoost + freshnessBoost,
+    createdAt: post.createdAt,
   };
 }
 

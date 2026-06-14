@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
-import type { DisciplineSlug } from "@/lib/mock/community-data";
+import type { DisciplineSlug } from "@/lib/community/catalog";
 import { cn } from "@/lib/utils";
 
 type DisciplineTabsProps = {

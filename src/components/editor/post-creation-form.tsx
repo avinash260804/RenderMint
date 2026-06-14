@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, PencilLine, Save } from "lucide-react";
 import Image from "next/image";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { AssetUploader } from "@/components/upload/asset-uploader";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { communityCatalogDisciplines, type DisciplineSlug } from "@/lib/community/catalog";
 import {
   postCreationDefaultValues,
   postCreationSchema,
@@ -21,13 +22,14 @@ import {
 import { cn } from "@/lib/utils";
 
 const postTypes = ["discussion", "critique", "showcase", "help", "resource"] as const;
-const disciplines = ["architecture", "interior-design", "urban-design"] as const;
-
-const softwaresByDiscipline: Record<(typeof disciplines)[number], string[]> = {
-  architecture: ["Rhino", "Grasshopper", "Revit", "AutoCAD", "SketchUp"],
-  "interior-design": ["SketchUp", "AutoCAD", "V-Ray", "Enscape"],
-  "urban-design": ["Rhino", "GIS", "Illustrator"],
-};
+const disciplineOptions = communityCatalogDisciplines.map((discipline) => discipline.slug);
+const softwareOptionsByDiscipline = communityCatalogDisciplines.reduce(
+  (options, discipline) => ({
+    ...options,
+    [discipline.slug]: discipline.softwares,
+  }),
+  {} as Record<DisciplineSlug, string[]>,
+);
 
 const draftStorageKey = (postType: PostCreationInput["postType"]) =>
   `designershub:draft:${postType}`;
@@ -42,6 +44,7 @@ function FieldError({ message }: { message?: string }) {
 export function PostCreationForm() {
   const [mode, setMode] = useState<Mode>("edit");
   const [savedNotice, setSavedNotice] = useState("Draft autosaves locally.");
+  const [previewValues, setPreviewValues] = useState<PostCreationInput>(postCreationDefaultValues);
 
   const form = useForm<PostCreationInput, unknown, PostCreationValidated>({
     resolver: zodResolver(postCreationSchema),
@@ -49,9 +52,10 @@ export function PostCreationForm() {
     mode: "onSubmit",
   });
 
-  const values = form.watch();
-  const postType = form.watch("postType");
-  const discipline = form.watch("discipline") as (typeof disciplines)[number];
+  const watchedValues = useWatch({ control: form.control });
+  const values = { ...postCreationDefaultValues, ...watchedValues } as PostCreationInput;
+  const postType = values.postType;
+  const discipline = values.discipline as DisciplineSlug;
   const attachments = values.attachments ?? [];
 
   useEffect(() => {
@@ -76,12 +80,21 @@ export function PostCreationForm() {
     return () => window.clearTimeout(timer);
   }, [postType, values]);
 
-  const softwareOptions = useMemo(() => softwaresByDiscipline[discipline] ?? [], [discipline]);
+  const softwareOptions = useMemo(
+    () => softwareOptionsByDiscipline[discipline] ?? [],
+    [discipline],
+  );
 
   function handleClearDraft() {
     localStorage.removeItem(draftStorageKey(postType));
     form.reset({ ...postCreationDefaultValues, postType });
+    setPreviewValues({ ...postCreationDefaultValues, postType });
     setSavedNotice(`Cleared ${postType} draft.`);
+  }
+
+  function handlePreview() {
+    setPreviewValues({ ...postCreationDefaultValues, ...form.getValues() });
+    setMode("preview");
   }
 
   async function onSubmit(input: PostCreationValidated) {
@@ -143,7 +156,7 @@ export function PostCreationForm() {
             <Button
               variant={mode === "preview" ? "default" : "outline"}
               size="sm"
-              onClick={() => setMode("preview")}
+              onClick={handlePreview}
             >
               <Eye className="size-4" /> Preview
             </Button>
@@ -157,6 +170,7 @@ export function PostCreationForm() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Post type</label>
             <select
+              aria-label="Post type"
               className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none"
               value={postType}
               onChange={(event) =>
@@ -178,17 +192,22 @@ export function PostCreationForm() {
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-medium">Title</label>
-                  <Input {...form.register("title")} placeholder="Write a clear post title" />
+                  <Input
+                    {...form.register("title")}
+                    aria-label="Title"
+                    placeholder="Write a clear post title"
+                  />
                   <FieldError message={form.formState.errors.title?.message} />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Discipline</label>
                   <select
+                    aria-label="Discipline"
                     className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none"
                     {...form.register("discipline")}
                   >
-                    {disciplines.map((item) => (
+                    {disciplineOptions.map((item) => (
                       <option key={item} value={item}>
                         {item}
                       </option>
@@ -202,6 +221,7 @@ export function PostCreationForm() {
                     Software {postType === "help" ? "(required)" : "(optional)"}
                   </label>
                   <select
+                    aria-label="Software"
                     className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-10 w-full rounded-lg border bg-transparent px-3 text-sm outline-none"
                     {...form.register("software")}
                   >
@@ -234,6 +254,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Body</label>
                     <Textarea
                       {...form.register("body")}
+                      aria-label="Body"
                       rows={6}
                       placeholder="Describe your discussion topic in detail."
                     />
@@ -255,6 +276,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Context</label>
                     <Textarea
                       {...form.register("context")}
+                      aria-label="Context"
                       rows={3}
                       placeholder="Project stage, site, and goals."
                     />
@@ -264,6 +286,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Project description</label>
                     <Textarea
                       {...form.register("projectDescription")}
+                      aria-label="Project description"
                       rows={4}
                       placeholder="Explain the design intent and current direction."
                     />
@@ -273,6 +296,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Challenge statement</label>
                     <Textarea
                       {...form.register("challengeStatement")}
+                      aria-label="Challenge statement"
                       rows={3}
                       placeholder="What specific challenge do you want help with?"
                     />
@@ -282,6 +306,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Feedback requested</label>
                     <Input
                       {...form.register("feedbackRequested")}
+                      aria-label="Feedback requested"
                       placeholder="Facade language, zoning clarity, circulation..."
                     />
                   </div>
@@ -294,6 +319,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Project summary</label>
                     <Textarea
                       {...form.register("projectSummary")}
+                      aria-label="Project summary"
                       rows={4}
                       placeholder="Summarize the project and final outcome."
                     />
@@ -303,6 +329,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Tools used</label>
                     <Input
                       {...form.register("toolsUsed")}
+                      aria-label="Tools used"
                       placeholder="Rhino, Grasshopper, V-Ray"
                     />
                     <FieldError message={form.formState.errors.toolsUsed?.message} />
@@ -321,6 +348,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Issue description</label>
                     <Textarea
                       {...form.register("issueDescription")}
+                      aria-label="Issue description"
                       rows={4}
                       placeholder="Describe exactly what is failing and when."
                     />
@@ -330,6 +358,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Error context (optional)</label>
                     <Textarea
                       {...form.register("errorContext")}
+                      aria-label="Error context"
                       rows={3}
                       placeholder="Error messages, steps to reproduce, expected output."
                     />
@@ -343,6 +372,7 @@ export function PostCreationForm() {
                     <label className="text-sm font-medium">Resource explanation</label>
                     <Textarea
                       {...form.register("resourceExplanation")}
+                      aria-label="Resource explanation"
                       rows={4}
                       placeholder="Explain why this resource matters and who should use it."
                     />
@@ -354,6 +384,7 @@ export function PostCreationForm() {
                     </label>
                     <Textarea
                       {...form.register("resourceLinks")}
+                      aria-label="Resource links"
                       rows={3}
                       placeholder="https://example.com\nhttps://example.org"
                     />
@@ -374,7 +405,7 @@ export function PostCreationForm() {
               </CardFooter>
             </form>
           ) : (
-            <PostPreview values={values} />
+            <PostPreview values={previewValues} />
           )}
         </CardContent>
       </Card>

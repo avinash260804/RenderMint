@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next";
 
 import { env } from "@/lib/env";
-import { communityPosts, disciplines } from "@/lib/mock/community-data";
+import { communityCatalogDisciplines, communityCatalogPosts } from "@/lib/community/catalog";
 
 const spacePaths = ["discussions", "critique", "showcase", "help", "resources"] as const;
 
@@ -30,7 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const disciplineRoutes: MetadataRoute.Sitemap = disciplines.flatMap((discipline) => {
+  const disciplineRoutes: MetadataRoute.Sitemap = communityCatalogDisciplines.flatMap((discipline) => {
     const hub = {
       url: `${baseUrl}/${discipline.slug}`,
       lastModified: now,
@@ -48,7 +48,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     return [hub, ...spaces];
   });
 
-  const threadRoutes: MetadataRoute.Sitemap = communityPosts.map((post) => ({
+  const threadRoutes: MetadataRoute.Sitemap = communityCatalogPosts.map((post) => ({
     url: `${baseUrl}/thread/${post.slug}`,
     lastModified: new Date(post.createdAt),
     changeFrequency: post.type === "help" ? ("daily" as const) : ("weekly" as const),

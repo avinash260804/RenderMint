@@ -33,12 +33,18 @@ export async function middleware(request: NextRequest) {
   const requiresAuth = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
   if (requiresAuth && !user) {
-    const redirectUrl = new URL("/auth/login", request.url);
+    const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (user && (pathname === "/auth/login" || pathname === "/auth/signup")) {
+  if (
+    user &&
+    (pathname === "/login" ||
+      pathname === "/signup" ||
+      pathname === "/auth/login" ||
+      pathname === "/auth/signup")
+  ) {
     return NextResponse.redirect(new URL("/onboarding", request.url));
   }
 
@@ -46,5 +52,12 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/auth/login", "/auth/signup", "/onboarding/:path*", "/settings/:path*"],
+  matcher: [
+    "/login",
+    "/signup",
+    "/auth/login",
+    "/auth/signup",
+    "/onboarding/:path*",
+    "/settings/:path*",
+  ],
 };

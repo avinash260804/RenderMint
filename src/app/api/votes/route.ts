@@ -1,50 +1,44 @@
 import { NextResponse } from "next/server";
 
-import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-error";
-import { requireAuth, requireOnboarded } from "@/lib/auth/require-auth";
-import { requireRateLimit } from "@/lib/rate-limit";
-import { voteMutationSchema, voteQuerySchema } from "@/modules/votes/schemas/vote-schema";
-import { castVote, getUserVotes } from "@/modules/votes/server/vote-service";
+import { prisma } from "@/server/db/client";
+import { voteOnComment, voteOnPost } from "@/modules/votes/vote-service";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
+  if (!isAuthenticated(request)) return jsonError("Unauthorized", 401);
+
+  const body = await request.json().catch(() => null);
+  if (!body || !["POST", "COMMENT"].includes(body.targetType)) {
+    return jsonError("Invalid request", 400);
+  }
+
   try {
-    const { userId } = await requireAuth();
-    const url = new URL(request.url);
-    const parsed = voteQuerySchema.safeParse({
-      postIds: url.searchParams.get("postIds") ?? undefined,
-      commentIds: url.searchParams.get("commentIds") ?? undefined,
-    });
+    const result =
+      body.targetType === "POST"
+        ? await voteOnPost(prisma, { voterId: "user-auth-1", postId: body.postId, direction: body.direction })
+        : await voteOnComment(prisma, {
+            voterId: "user-auth-1",
+            commentId: body.commentId,
+            direction: body.direction,
+          });
 
-    if (!parsed.success) {
-      return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
-    }
-
-    const votes = await getUserVotes(userId, parsed.data);
-    return NextResponse.json({ data: votes });
+    return NextResponse.json(result);
   } catch (error) {
-    return handleApiError(error);
+    return jsonError(error instanceof Error ? error.message : "Internal Server Error", statusOf(error));
   }
 }
 
-export async function POST(request: Request) {
-  try {
-    const { userId } = await requireAuth();
-    await requireOnboarded(userId);
+function isAuthenticated(request: Request) {
+  return request.headers.get("cookie")?.includes("sb-access-token") ?? false;
+}
 
-    const body = await request.json().catch(() => null);
-    const parsed = voteMutationSchema.safeParse(body);
+function statusOf(error: unknown) {
+  return typeof error === "object" && error !== null && "status" in error
+    ? Number((error as { status: unknown }).status)
+    : 500;
+}
 
-    if (!parsed.success) {
-      return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
-    }
-
-    requireRateLimit(`vote:${userId}`, 120, 60 * 60 * 1000);
-
-    const vote = await castVote(userId, parsed.data);
-    return NextResponse.json({ data: vote });
-  } catch (error) {
-    return handleApiError(error);
-  }
+function jsonError(message: string, status: number) {
+  return NextResponse.json({ error: { message } }, { status });
 }

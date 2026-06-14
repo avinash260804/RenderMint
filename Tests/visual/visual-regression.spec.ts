@@ -1,0 +1,1 @@
+import "../visual-regression.spec";

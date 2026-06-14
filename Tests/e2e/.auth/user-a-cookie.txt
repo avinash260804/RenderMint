@@ -1,0 +1,1 @@
+sb-access-token=replace-with-user-a-session-token
