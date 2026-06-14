@@ -104,6 +104,8 @@ export async function updateProfile(userId: string, input: ProfileUpdateInput) {
             : input.avatarUrl
               ? sanitizeUrl(input.avatarUrl)
               : null,
+        experienceLevel: input.experienceLevel,
+        skills: input.skills,
         primaryDiscipline: input.primaryDiscipline,
       },
     });
@@ -158,14 +160,77 @@ export async function getProfileStats(userId: string) {
   };
 }
 
+export async function getProfilePosts(userId: string) {
+  const posts = await prisma.post.findMany({
+    where: {
+      authorId: userId,
+      deletedAt: null,
+    } as never,
+    include: {
+      author: {
+        select: {
+          username: true,
+        },
+      },
+      discipline: {
+        select: {
+          slug: true,
+          name: true,
+        },
+      },
+      software: {
+        select: {
+          name: true,
+        },
+      },
+      postTags: {
+        include: {
+          tag: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    take: 24,
+  });
+
+  return posts.map((post) => ({
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    type: post.postType,
+    bodyPreview: post.body ?? "",
+    discipline: {
+      slug: post.discipline.slug,
+      name: post.discipline.name,
+    },
+    software: post.software?.name ?? null,
+    tags: post.postTags.map((entry) => entry.tag.name),
+    createdAt: post.createdAt.toISOString(),
+    commentCount: post.commentCount,
+    voteCount: post.voteCount,
+    solved: post.isSolved,
+  }));
+}
+
 const profileSelect = {
   id: true,
   username: true,
   avatarUrl: true,
   bio: true,
+  experienceLevel: true,
+  skills: true,
   primaryDiscipline: true,
   reputation: true,
   createdAt: true,
+  discipline: {
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+    },
+  },
   profileSoftwares: {
     select: {
       software: {
@@ -190,9 +255,16 @@ function mapProfile(
     username: string;
     avatarUrl: string | null;
     bio: string | null;
+    experienceLevel: string | null;
+    skills: string[];
     primaryDiscipline: string | null;
     reputation: number;
     createdAt: Date;
+    discipline: {
+      id: number;
+      slug: string;
+      name: string;
+    } | null;
     profileSoftwares: Array<{
       software: {
         id: number;
@@ -208,7 +280,10 @@ function mapProfile(
     username: profile.username,
     avatarUrl: profile.avatarUrl,
     bio: profile.bio,
+    experienceLevel: profile.experienceLevel,
+    skills: profile.skills,
     primaryDiscipline: profile.primaryDiscipline,
+    discipline: profile.discipline,
     reputation: profile.reputation,
     createdAt: profile.createdAt.toISOString(),
     softwares: profile.profileSoftwares.map((entry) => entry.software),

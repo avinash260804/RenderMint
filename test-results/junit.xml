@@ -1,0 +1,8 @@
+<testsuites id="" name="" tests="2" failures="0" skipped="0" errors="0" time="2.514193">
+<testsuite name="e2e\auth.setup.ts" timestamp="2026-06-14T20:53:46.575Z" hostname="setup" tests="2" failures="0" skipped="0" time="2.176" errors="0">
+<testcase name="authenticate as User A" classname="e2e\auth.setup.ts" time="1.071">
+</testcase>
+<testcase name="authenticate as User B" classname="e2e\auth.setup.ts" time="1.105">
+</testcase>
+</testsuite>
+</testsuites>

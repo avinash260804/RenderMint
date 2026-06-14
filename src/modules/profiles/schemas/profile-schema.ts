@@ -11,6 +11,13 @@ export const profileUpdateSchema = z.object({
     .optional(),
   bio: z.string().trim().max(300).optional(),
   avatarUrl: z.string().trim().url().max(500).nullable().optional(),
+  experienceLevel: z
+    .enum(["Student", "Practitioner", "Contributor", "Mentor"])
+    .optional(),
+  skills: z
+    .array(z.string().trim().min(1).max(40))
+    .max(12)
+    .optional(),
   primaryDiscipline: z.string().trim().min(1).max(64).optional(),
   softwareIds: z.array(z.number().int().positive()).max(8).optional(),
 });

@@ -19,7 +19,7 @@ export default async function OnboardingPage() {
 
   const onboarded = await isUserOnboarded(user.id);
   if (onboarded) {
-    redirect("/");
+    redirect("/dashboard");
   }
 
   const disciplines = await getDisciplinesWithSoftwares();

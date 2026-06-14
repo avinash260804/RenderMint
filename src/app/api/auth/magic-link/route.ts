@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { magicLinkSchema } from "@/modules/auth/schemas/auth-schemas";
+import { sanitizeNextPath } from "@/modules/auth/server/auth-redirect";
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null);
@@ -12,11 +13,13 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createServerSupabaseClient();
+  const nextPath = sanitizeNextPath(parsed.data.next) ?? "/";
+  const origin = new URL(request.url).origin;
 
   const { error } = await supabase.auth.signInWithOtp({
     email: parsed.data.email,
     options: {
-      emailRedirectTo: `${new URL(request.url).origin}/auth/callback?next=/onboarding`,
+      emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
     },
   });
 

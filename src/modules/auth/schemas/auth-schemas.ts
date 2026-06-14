@@ -2,6 +2,13 @@ import { z } from "zod";
 
 export const magicLinkSchema = z.object({
   email: z.string().trim().email().max(255),
+  next: z.string().trim().max(512).optional(),
+  intent: z.enum(["signin", "signup"]).optional(),
+});
+
+export const authFlowSchema = z.object({
+  next: z.string().trim().max(512).optional(),
+  intent: z.enum(["signin", "signup"]).optional(),
 });
 
 export const onboardingSchema = z.object({
@@ -17,3 +24,4 @@ export const onboardingSchema = z.object({
 });
 
 export type OnboardingInput = z.infer<typeof onboardingSchema>;
+export type AuthFlowInput = z.infer<typeof authFlowSchema>;

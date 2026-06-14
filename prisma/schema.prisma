@@ -36,6 +36,8 @@ model Profile {
   username          String            @unique @db.VarChar(32)
   avatarUrl         String?           @map("avatar_url")
   bio               String?           @db.VarChar(300)
+  experienceLevel   String?           @map("experience_level") @db.VarChar(32)
+  skills            String[]          @default([])
   primaryDiscipline String?           @map("primary_discipline") @db.VarChar(64)
   onboarded         Boolean           @default(false)
   disciplineId      Int?              @map("discipline_id")

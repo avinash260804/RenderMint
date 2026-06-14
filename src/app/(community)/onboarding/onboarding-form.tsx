@@ -48,7 +48,7 @@ export function OnboardingForm({ disciplines }: OnboardingFormProps) {
       return;
     }
 
-    router.push("/");
+    router.push("/dashboard");
   }
 
   return (

@@ -1,5 +1,1 @@
-import { AuthActions } from "@/app/auth/auth-actions";
-
-export default function SignupPage() {
-  return <AuthActions mode="signup" />;
-}
+export { default } from "@/app/auth/signup/page";

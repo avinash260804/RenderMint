@@ -3,9 +3,9 @@
     {
       "name": "sb-access-token",
       "value": "replace-with-user-b-session-token",
-      "domain": "localhost",
+      "domain": "127.0.0.1",
       "path": "/",
-      "expires": 1781456636,
+      "expires": 1781474028,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"

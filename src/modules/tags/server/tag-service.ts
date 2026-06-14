@@ -17,7 +17,7 @@ export async function listTags(query: TagQuery) {
     });
   }
 
-  return prisma.tag.findMany({
+  const tags = await prisma.tag.findMany({
     where: {
       ...(query.q
         ? {
@@ -55,6 +55,13 @@ export async function listTags(query: TagQuery) {
     orderBy: [{ name: "asc" }],
     take: limit,
   });
+
+  return tags.map((tag) => ({
+    id: tag.id,
+    name: tag.name,
+    slug: tag.slug,
+    usageCount: tag._count.postTags,
+  }));
 }
 
 async function getPopularTags(input: { discipline?: string; limit: number }) {
@@ -100,9 +107,9 @@ async function getPopularTags(input: { discipline?: string; limit: number }) {
   return tags
     .map((tag) => ({
       ...tag,
-      postCount: countsByTagId.get(tag.id) ?? 0,
+      usageCount: countsByTagId.get(tag.id) ?? 0,
     }))
-    .sort((a, b) => b.postCount - a.postCount || a.name.localeCompare(b.name));
+    .sort((a, b) => b.usageCount - a.usageCount || a.name.localeCompare(b.name));
 }
 
 function normalizeSlug(value: string) {

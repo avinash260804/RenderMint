@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 import { env } from "@/lib/env";
 
-const protectedPrefixes = ["/onboarding", "/settings"];
+const protectedPrefixes = ["/dashboard", "/onboarding", "/settings"];
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });
@@ -38,16 +38,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (
-    user &&
-    (pathname === "/login" ||
-      pathname === "/signup" ||
-      pathname === "/auth/login" ||
-      pathname === "/auth/signup")
-  ) {
-    return NextResponse.redirect(new URL("/onboarding", request.url));
-  }
-
   return response;
 }
 
@@ -57,6 +47,7 @@ export const config = {
     "/signup",
     "/auth/login",
     "/auth/signup",
+    "/dashboard/:path*",
     "/onboarding/:path*",
     "/settings/:path*",
   ],

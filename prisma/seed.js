@@ -25,6 +25,8 @@ const profiles = [
     id: "11111111-1111-4111-8111-111111111111",
     username: "anaya-studio",
     bio: "Architecture student exploring climate-responsive studios and presentation workflows.",
+    experienceLevel: "Student",
+    skills: ["Climate Studies", "Presentation Boards", "Diagramming"],
     primaryDiscipline: "architecture",
     softwares: ["rhino", "grasshopper", "enscape"],
   },
@@ -32,6 +34,8 @@ const profiles = [
     id: "22222222-2222-4222-8222-222222222222",
     username: "ravi-renders",
     bio: "Visualization generalist focused on fast iteration, lighting studies, and critique loops.",
+    experienceLevel: "Practitioner",
+    skills: ["Visualization", "Lighting Studies", "Rendering Workflows"],
     primaryDiscipline: "architecture",
     softwares: ["revit", "lumion", "v-ray"],
   },
@@ -39,6 +43,8 @@ const profiles = [
     id: "33333333-3333-4333-8333-333333333333",
     username: "meera-spaces",
     bio: "Interior designer documenting material systems, client presentations, and detail workflows.",
+    experienceLevel: "Contributor",
+    skills: ["Material Systems", "Client Communication", "Detailing"],
     primaryDiscipline: "interior-design",
     softwares: ["sketchup", "autocad", "v-ray"],
   },
@@ -46,6 +52,8 @@ const profiles = [
     id: "44444444-4444-4444-8444-444444444444",
     username: "kabir-urbanlab",
     bio: "Urban design researcher working on mobility, public realm, and diagram-heavy storytelling.",
+    experienceLevel: "Practitioner",
+    skills: ["Mobility Frameworks", "Public Realm", "Urban Diagramming"],
     primaryDiscipline: "urban-design",
     softwares: ["autocad", "rhino", "grasshopper"],
   },
@@ -255,8 +263,8 @@ async function main() {
   for (const tag of tags) {
     const record = await prisma.tag.upsert({
       where: { slug: tag.slug },
-      update: { name: tag.name },
-      create: tag,
+      update: { name: tag.name, usageCount: 0, disciplineId: null },
+      create: { ...tag, usageCount: 0, disciplineId: null },
     });
     tagBySlug.set(record.slug, record);
   }
@@ -267,14 +275,22 @@ async function main() {
       update: {
         username: profile.username,
         bio: profile.bio,
+        experienceLevel: profile.experienceLevel,
+        skills: profile.skills,
         primaryDiscipline: profile.primaryDiscipline,
+        onboarded: true,
+        disciplineId: disciplineBySlug.get(profile.primaryDiscipline)?.id ?? null,
         avatarUrl: `https://api.dicebear.com/9.x/shapes/svg?seed=${profile.username}`,
       },
       create: {
         id: profile.id,
         username: profile.username,
         bio: profile.bio,
+        experienceLevel: profile.experienceLevel,
+        skills: profile.skills,
         primaryDiscipline: profile.primaryDiscipline,
+        onboarded: true,
+        disciplineId: disciplineBySlug.get(profile.primaryDiscipline)?.id ?? null,
         avatarUrl: `https://api.dicebear.com/9.x/shapes/svg?seed=${profile.username}`,
       },
     });
@@ -356,6 +372,7 @@ async function main() {
         postId: post?.id ?? null,
         commentId: targetType === "comment" ? targetId : null,
         voteType: "up",
+        direction: "UP",
       },
       create: {
         id,
@@ -364,11 +381,13 @@ async function main() {
         postId: post?.id ?? null,
         commentId: targetType === "comment" ? targetId : null,
         voteType: "up",
+        direction: "UP",
       },
     });
   }
 
   await applyAcceptedSolutions(postBySlug);
+  await refreshTagMetadata(disciplineBySlug);
   await refreshCountersAndReputation();
 
   console.log(
@@ -412,6 +431,52 @@ async function applyAcceptedSolutions(postBySlug) {
       acceptedCommentId: "bbbbbbbb-0005-4000-8000-000000000005",
     },
   });
+}
+
+async function refreshTagMetadata(disciplineBySlug) {
+  const tagUsage = await prisma.postTag.groupBy({
+    by: ["tagId"],
+    _count: {
+      tagId: true,
+    },
+  });
+
+  const disciplineUsage = await prisma.postTag.findMany({
+    select: {
+      tagId: true,
+      post: {
+        select: {
+          discipline: {
+            select: {
+              slug: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const disciplinesByTagId = new Map();
+  for (const entry of disciplineUsage) {
+    const current = disciplinesByTagId.get(entry.tagId) ?? new Set();
+    current.add(entry.post.discipline.slug);
+    disciplinesByTagId.set(entry.tagId, current);
+  }
+
+  for (const entry of tagUsage) {
+    const singleDiscipline =
+      disciplinesByTagId.get(entry.tagId)?.size === 1
+        ? Array.from(disciplinesByTagId.get(entry.tagId))[0]
+        : null;
+
+    await prisma.tag.update({
+      where: { id: entry.tagId },
+      data: {
+        usageCount: entry._count.tagId,
+        disciplineId: singleDiscipline ? disciplineBySlug.get(singleDiscipline)?.id ?? null : null,
+      },
+    });
+  }
 }
 
 async function refreshCountersAndReputation() {
