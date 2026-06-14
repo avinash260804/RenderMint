@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { decodeCursor, encodeCursor } from "@/lib/pagination";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
-import { generateSlug, generateUniqueSlug as buildUniqueSlug } from "@/lib/slug";
+import { generateUniqueSlug as buildUniqueSlug } from "@/lib/slug";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import type { PostCreationValidated } from "@/modules/posts/schemas/post-creation-schema";
 import type {

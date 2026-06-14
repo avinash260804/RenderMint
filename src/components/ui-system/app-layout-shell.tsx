@@ -24,14 +24,14 @@ export function AppLayoutShell({
       <div className="container-shell py-6 sm:py-8">
         <div className="grid-12">
           <AppSidebar className="md:col-span-3 xl:col-span-2" />
-          <section className={cn("md:col-span-9 xl:col-span-10", className)}>
+          <main className={cn("md:col-span-9 xl:col-span-10", className)}>
             <TopNavigation
               label={navLabel}
               title={navTitle}
               searchPlaceholder={searchPlaceholder}
             />
             {children}
-          </section>
+          </main>
         </div>
       </div>
     </div>

@@ -53,7 +53,10 @@ export function PostCreationForm() {
   });
 
   const watchedValues = useWatch({ control: form.control });
-  const values = { ...postCreationDefaultValues, ...watchedValues } as PostCreationInput;
+  const values = useMemo(
+    () => ({ ...postCreationDefaultValues, ...watchedValues }) as PostCreationInput,
+    [watchedValues],
+  );
   const postType = values.postType;
   const discipline = values.discipline as DisciplineSlug;
   const attachments = values.attachments ?? [];
@@ -93,7 +96,36 @@ export function PostCreationForm() {
   }
 
   function handlePreview() {
-    setPreviewValues({ ...postCreationDefaultValues, ...form.getValues() });
+    const currentValues = { ...postCreationDefaultValues, ...form.getValues() };
+    const fieldNames = [
+      "title",
+      "discipline",
+      "software",
+      "tags",
+      "body",
+      "context",
+      "projectDescription",
+      "challengeStatement",
+      "feedbackRequested",
+      "projectSummary",
+      "toolsUsed",
+      "projectLink",
+      "issueDescription",
+      "errorContext",
+      "resourceExplanation",
+      "resourceLinks",
+    ] as const;
+
+    for (const fieldName of fieldNames) {
+      const field = document.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
+        `[name="${fieldName}"]`,
+      );
+      if (field) {
+        currentValues[fieldName] = field.value;
+      }
+    }
+
+    setPreviewValues(currentValues);
     setMode("preview");
   }
 

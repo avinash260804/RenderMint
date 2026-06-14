@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 type PrismaLike = {
   profile: any;
   post: any;

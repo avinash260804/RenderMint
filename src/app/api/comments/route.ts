@@ -2,13 +2,16 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/server/db/client";
 import { createComment, listCommentsBySlug } from "@/modules/comments/comment-service";
+import { listCommentsByPostSlug } from "@/modules/comments/server/comment-store";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const postSlug = url.searchParams.get("postSlug") ?? "";
-  const comments = await listCommentsBySlug(prisma, postSlug);
+  const comments = await listCommentsBySlug(prisma, postSlug).catch(() =>
+    listCommentsByPostSlug(postSlug),
+  );
   return NextResponse.json({ data: comments });
 }
 

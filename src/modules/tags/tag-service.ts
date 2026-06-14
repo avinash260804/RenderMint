@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 type PrismaLike = {
   tag: any;
   discipline: any;

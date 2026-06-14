@@ -130,6 +130,8 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
           <div className="relative md:col-span-2 xl:col-span-2">
             <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
             <Input
+              aria-label="Search"
+              data-testid="search-input"
               value={q}
               onChange={(event) => setQ(event.target.value)}
               placeholder="Search title, body preview, software, tags..."
@@ -138,6 +140,7 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
           </div>
 
           <select
+            aria-label="Discipline filter"
             className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
             value={discipline}
             onChange={(event) => {
@@ -154,6 +157,7 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
           </select>
 
           <select
+            aria-label="Software filter"
             className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
             value={software}
             onChange={(event) => setSoftware(event.target.value)}
@@ -167,6 +171,7 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
           </select>
 
           <select
+            aria-label="Post type filter"
             className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
             value={postType}
             onChange={(event) => setPostType((event.target.value as CommunityPostType) || "")}
@@ -180,6 +185,7 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
           </select>
 
           <select
+            aria-label="Solved state filter"
             className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
             value={solved}
             onChange={(event) => setSolved((event.target.value as "true" | "false") || "")}

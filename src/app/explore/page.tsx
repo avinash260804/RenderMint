@@ -12,6 +12,16 @@ export default async function ExplorePage() {
   return (
     <AppLayoutShell navLabel="Explore" navTitle="Unified discovery">
       <div className="space-y-8">
+        <section className="space-y-2">
+          <h1 className="font-serif text-3xl font-semibold tracking-tight">
+            Explore design knowledge
+          </h1>
+          <p className="text-muted-foreground max-w-2xl text-sm leading-6">
+            Browse disciplines, filter active threads, and find community knowledge across
+            discussions, critique, showcase, help, and resources.
+          </p>
+        </section>
+
         <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {disciplines.map((discipline) => (
             <Link

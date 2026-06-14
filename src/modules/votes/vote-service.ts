@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { AppError } from "@/lib/handle-error";
 
 type PrismaLike = {

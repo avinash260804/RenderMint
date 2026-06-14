@@ -5,7 +5,7 @@
       "value": "replace-with-user-a-session-token",
       "domain": "localhost",
       "path": "/",
-      "expires": 1781435181,
+      "expires": 1781456636,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"

@@ -169,20 +169,24 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
           </div>
         ) : null}
 
-        {loading ? (
-          <div className="space-y-2">
-            <div className="bg-muted h-14 animate-pulse rounded-lg" />
-            <div className="bg-muted h-14 animate-pulse rounded-lg" />
-          </div>
-        ) : comments.length === 0 ? (
-          <div className="text-muted-foreground border-border rounded-xl border border-dashed px-4 py-6 text-sm">
-            No comments yet. Start the conversation.
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {comments.map((comment) => (
+        <div data-testid="comment-list" role="list" className="space-y-3">
+          {loading ? (
+            <div className="space-y-2" role="listitem">
+              <div className="bg-muted h-14 animate-pulse rounded-lg" />
+              <div className="bg-muted h-14 animate-pulse rounded-lg" />
+            </div>
+          ) : comments.length === 0 ? (
+            <div
+              role="listitem"
+              className="text-muted-foreground border-border rounded-xl border border-dashed px-4 py-6 text-sm"
+            >
+              No comments yet. Start the conversation.
+            </div>
+          ) : (
+            comments.map((comment) => (
               <article
                 key={comment.id}
+                role="listitem"
                 className="border-border/70 bg-muted/20 rounded-xl border px-4 py-3"
               >
                 <div className="mb-2 flex items-center justify-between gap-2">
@@ -210,9 +214,9 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
                   </div>
                 ) : null}
               </article>
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
       </CardContent>
     </Card>
   );

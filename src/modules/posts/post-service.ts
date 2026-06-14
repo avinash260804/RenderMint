@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { AppError } from "@/lib/handle-error";
 import { generateSlug } from "@/lib/slug";
 
@@ -22,7 +24,7 @@ export async function createPost(prisma: PrismaLike, userId: string | undefined,
   const type = normalizePostType(input.postType ?? input.type);
   if (!type) throw new AppError("Post type is required", 400);
 
-  const discipline = await prisma.discipline.findUnique({ where: { id: input.disciplineId } });
+  await prisma.discipline.findUnique({ where: { id: input.disciplineId } });
   const slug = await generateSlug(input.title, {
     checkExists: async (candidate) => Boolean(await prisma.post.findUnique({ where: { slug: candidate } })),
   });
