@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       );
     }
 
-    requireRateLimit(`upload:${userId}`, 30, 60 * 60 * 1000);
+    await requireRateLimit(`upload:${userId}`, 30, 60 * 60 * 1000);
 
     const asset = await uploadAsset({
       file,

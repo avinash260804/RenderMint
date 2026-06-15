@@ -4,10 +4,7 @@ import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-erro
 import { requireAuth, requireOnboarded } from "@/lib/auth/require-auth";
 import { AuthError } from "@/lib/errors";
 import { requireRateLimit } from "@/lib/rate-limit";
-import {
-  createComment,
-  listCommentsByPostSlug,
-} from "@/modules/comments/server/comment-service";
+import { createComment, listCommentsByPostSlug } from "@/modules/comments/server/comment-service";
 import { listCommentsByPostSlug as listFallbackCommentsByPostSlug } from "@/modules/comments/server/comment-store";
 import {
   commentCreateSchema,
@@ -47,7 +44,7 @@ export async function POST(request: Request) {
   try {
     const userId = await resolveRequestUserId(request);
     await requireOnboarded(userId);
-    requireRateLimit(`comment:create:${userId}`, 20, 60 * 1000);
+    await requireRateLimit(`comment:create:${userId}`, 20, 60 * 1000);
 
     const body = await request.json().catch(() => null);
     const parsed = commentCreateSchema.safeParse(body);

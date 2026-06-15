@@ -4,13 +4,8 @@ import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-erro
 import { AuthError } from "@/lib/errors";
 import { requireAuth, requireOnboarded } from "@/lib/auth/require-auth";
 import { requireRateLimit } from "@/lib/rate-limit";
-import {
-  createPost,
-  listPosts,
-} from "@/modules/posts/server/post-service";
-import {
-  postCreationSchema,
-} from "@/modules/posts/schemas/post-creation-schema";
+import { createPost, listPosts } from "@/modules/posts/server/post-service";
+import { postCreationSchema } from "@/modules/posts/schemas/post-creation-schema";
 import { postListQuerySchema } from "@/modules/posts/schemas/post-api-schema";
 
 export const dynamic = "force-dynamic";
@@ -42,7 +37,7 @@ export async function POST(request: Request) {
   try {
     const userId = await resolveRequestUserId(request);
     await requireOnboarded(userId);
-    requireRateLimit(`post:create:${userId}`, 10, 60 * 1000);
+    await requireRateLimit(`post:create:${userId}`, 10, 60 * 1000);
 
     const body = await request.json().catch(() => null);
     const parsed = postCreationSchema.safeParse(body);

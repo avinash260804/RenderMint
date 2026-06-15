@@ -132,6 +132,10 @@ model Post {
   votes               Vote[]
   acceptedComment     Comment?     @relation("AcceptedComment", fields: [acceptedCommentId], references: [id], onDelete: SetNull)
 
+  @@index([authorId], map: "idx_posts_author_id")
+  @@index([disciplineId], map: "idx_posts_discipline_id")
+  @@index([createdAt], map: "idx_posts_created_at")
+  @@index([postType], map: "idx_posts_post_type")
   @@index([postType, createdAt(sort: Desc)], map: "idx_posts_type_created_at")
   @@index([disciplineId, postType, createdAt(sort: Desc)], map: "idx_posts_discipline_type_created_at")
   @@index([softwareId, postType, createdAt(sort: Desc)], map: "idx_posts_software_type_created_at")
@@ -156,21 +160,23 @@ model Attachment {
 }
 
 model Comment {
-  id         String   @id @default(uuid()) @db.Uuid
-  postId     String   @map("post_id") @db.Uuid
-  authorId   String   @map("author_id") @db.Uuid
+  id         String    @id @default(uuid()) @db.Uuid
+  postId     String    @map("post_id") @db.Uuid
+  authorId   String    @map("author_id") @db.Uuid
   body       String
-  voteCount  Int      @default(0) @map("vote_count")
-  isSolution Boolean  @default(false) @map("is_solution")
+  voteCount  Int       @default(0) @map("vote_count")
+  isSolution Boolean   @default(false) @map("is_solution")
   editedAt   DateTime? @map("edited_at")
   deletedAt  DateTime? @map("deleted_at")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
-  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  author     Profile  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author     Profile   @relation(fields: [authorId], references: [id], onDelete: Cascade)
   votes      Vote[]
-  acceptedBy Post?    @relation("AcceptedComment")
+  acceptedBy Post?     @relation("AcceptedComment")
 
+  @@index([postId], map: "idx_comments_post_id")
+  @@index([authorId], map: "idx_comments_author_id")
   @@index([postId, createdAt], map: "idx_comments_post_created_at")
   @@index([authorId, createdAt(sort: Desc)], map: "idx_comments_author_created_at")
   @@index([isSolution], map: "idx_comments_is_solution")
