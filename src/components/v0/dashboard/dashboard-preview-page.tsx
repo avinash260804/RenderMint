@@ -10,7 +10,7 @@ import { StudioStatePanel } from "@/components/v0/dashboard/studio-state-panel";
 export function DashboardPreviewPage() {
   return (
     <main
-      className="v0-preview-theme relative min-h-screen overflow-x-hidden bg-background text-foreground"
+      className="v0-preview-theme v0-surface v0-surface--dashboard relative min-h-screen overflow-x-hidden bg-background text-foreground"
       style={{ zIndex: 1, background: "transparent" }}
     >
       <div className="noise-overlay" aria-hidden="true" />

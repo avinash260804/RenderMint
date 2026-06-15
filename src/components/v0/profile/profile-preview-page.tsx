@@ -55,7 +55,8 @@ export function ProfilePreviewPage() {
       : PROFILE.projects;
 
   return (
-    <div className="v0-preview-theme min-h-screen bg-background text-foreground">
+    <div className="v0-preview-theme v0-surface v0-surface--profile min-h-screen bg-background text-foreground">
+      <div className="noise-overlay" aria-hidden="true" />
       <ProfileNav />
       <main className="pb-20 pt-12">
         <div className="mx-auto grid max-w-7xl grid-cols-12 gap-6 px-6 lg:gap-8">

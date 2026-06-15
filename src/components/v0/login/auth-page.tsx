@@ -21,7 +21,7 @@ export function AuthPage({
     setMode((m) => (m === "signup" ? "signin" : "signup"))
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-background p-4 md:p-8 relative z-10">
+    <main className="v0-preview-theme v0-surface v0-surface--login relative z-10 flex min-h-screen items-center justify-center bg-background p-4 md:p-8">
       {/* Outer card — dark rounded container matching the reference */}
       <div
         className="w-full max-w-5xl flex rounded-2xl overflow-hidden shadow-2xl"

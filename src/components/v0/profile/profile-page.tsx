@@ -99,7 +99,8 @@ export function AtelierProfilePage({
   const joinedLabel = formatJoinedDate(profile.createdAt);
 
   return (
-    <div className="v0-preview-theme min-h-screen bg-background text-foreground">
+    <div className="v0-preview-theme v0-surface v0-surface--profile min-h-screen bg-background text-foreground">
+      <div className="noise-overlay" aria-hidden="true" />
       <ProfileNav
         userName={profile.username}
         userInitials={initials}

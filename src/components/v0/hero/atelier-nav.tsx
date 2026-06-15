@@ -8,11 +8,12 @@ import gsap from "gsap"
 
 const SECTIONS = [
   { id: "hero", label: "Home", index: "00" },
-  { id: "critiques", label: "Critiques", index: "01" },
-  { id: "work", label: "Showcases", index: "02" },
-  { id: "principles", label: "Platform", index: "03" },
-  { id: "join", label: "Join", index: "04" },
-  { id: "colophon", label: "Community", index: "05" },
+  { id: "signals", label: "Signals", index: "01" },
+  { id: "critiques", label: "Critiques", index: "02" },
+  { id: "work", label: "Showcases", index: "03" },
+  { id: "principles", label: "Platform", index: "04" },
+  { id: "join", label: "Join", index: "05" },
+  { id: "colophon", label: "Community", index: "06" },
 ]
 
 const META_LINKS = [

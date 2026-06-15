@@ -6,6 +6,8 @@ import { CritiquesSection } from "@/components/v0/hero/critiques-section";
 import { HeroSection } from "@/components/v0/hero/hero-section";
 import { JoinSection } from "@/components/v0/hero/join-section";
 import { PrinciplesSection } from "@/components/v0/hero/principles-section";
+import { SideNav } from "@/components/v0/hero/side-nav";
+import { SignalsSection } from "@/components/v0/hero/signals-section";
 import type { HeroDiscipline, HeroStats } from "@/components/v0/hero/types";
 import { WorkSection } from "@/components/v0/hero/work-section";
 
@@ -16,11 +18,13 @@ type LandingPageProps = {
 
 export function LandingPage({ disciplines, stats }: LandingPageProps) {
   return (
-    <main className="v0-preview-theme relative min-h-screen overflow-x-hidden bg-background text-foreground">
+    <main className="v0-preview-theme v0-surface v0-surface--hero relative min-h-screen overflow-x-hidden bg-background text-foreground">
       <AtelierNav />
+      <SideNav />
       <div className="grid-bg fixed inset-0 opacity-30" aria-hidden="true" />
       <div className="relative z-10 pt-[60px]">
         <HeroSection disciplines={disciplines} stats={stats} />
+        <SignalsSection />
         <CritiquesSection />
         <WorkSection />
         <PrinciplesSection />

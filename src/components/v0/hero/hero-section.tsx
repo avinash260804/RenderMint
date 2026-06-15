@@ -98,7 +98,7 @@ export function HeroSection({ disciplines, stats }: HeroSectionProps) {
       style={{ height: "calc(100dvh - 60px)" }}
     >
       <div
-        className="absolute inset-0 pointer-events-none z-0"
+        className="hero-grid-motion absolute inset-0 pointer-events-none z-0"
         style={{
           left: "35%",
           right: "-8%",
@@ -112,7 +112,7 @@ export function HeroSection({ disciplines, stats }: HeroSectionProps) {
       </div>
 
       <div
-        className="absolute inset-y-0 pointer-events-none z-10"
+        className="hero-grid-fade absolute inset-y-0 pointer-events-none z-10"
         style={{
           left: "30%",
           width: "28%",
@@ -122,9 +122,9 @@ export function HeroSection({ disciplines, stats }: HeroSectionProps) {
 
       <div
         ref={contentRef}
-        className="relative z-20 flex h-full max-w-[52%] flex-col justify-between px-10 md:px-16 lg:px-20"
+        className="hero-content relative z-20 flex h-full max-w-full flex-col justify-between px-6 sm:px-8 md:max-w-[65%] md:px-12 lg:max-w-[52%] lg:px-20"
       >
-        <div className="flex min-h-0 flex-1 flex-col justify-center gap-0">
+        <div className="hero-content-copy flex min-h-0 flex-1 flex-col justify-center gap-0">
           <div ref={eyebrowRef} className="mb-7 flex items-center gap-2.5">
             <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-accent" />
             <span className="font-mono text-[10px] uppercase tracking-[0.32em] text-muted-foreground">
