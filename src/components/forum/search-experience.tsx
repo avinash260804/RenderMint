@@ -1,12 +1,15 @@
 "use client";
 
-import { Search, SlidersHorizontal } from "lucide-react";
-import { useDeferredValue, useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { PostGrid } from "@/components/forum/post-grid";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CommunityPost, CommunityPostType, DisciplineData } from "@/lib/community/catalog";
+import type { SearchQuery } from "@/modules/search/schemas/search-schema";
+import type { SearchPayload } from "@/modules/search/server/search-service";
 
 type SearchApiResponse = {
   data: Array<{
@@ -25,6 +28,9 @@ type SearchApiResponse = {
     total: number;
     page: number;
     pageSize: number;
+    pageCount: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
   };
 };
 
@@ -32,24 +38,36 @@ const postTypes: CommunityPostType[] = ["discussion", "critique", "showcase", "h
 
 type SearchExperienceProps = {
   disciplines: DisciplineData[];
+  initialQuery: SearchQuery;
+  initialResult: SearchPayload;
 };
 
-export function SearchExperience({ disciplines }: SearchExperienceProps) {
-  const initialParams =
-    typeof window === "undefined" ? new URLSearchParams() : new URLSearchParams(window.location.search);
-  const [q, setQ] = useState(initialParams.get("q") ?? "");
-  const [discipline, setDiscipline] = useState(initialParams.get("discipline") ?? "");
-  const [software, setSoftware] = useState("");
-  const [postType, setPostType] = useState<"" | CommunityPostType>(
-    (initialParams.get("postType") as CommunityPostType | null) ?? "",
-  );
-  const [solved, setSolved] = useState<"" | "true" | "false">(
-    (initialParams.get("solved") as "true" | "false" | null) ?? "",
-  );
+export function SearchExperience({
+  disciplines,
+  initialQuery,
+  initialResult,
+}: SearchExperienceProps) {
+  const [q, setQ] = useState(initialQuery.q ?? "");
+  const [discipline, setDiscipline] = useState(initialQuery.discipline ?? "");
+  const [software, setSoftware] = useState(initialQuery.software ?? "");
+  const [postType, setPostType] = useState<"" | CommunityPostType>(initialQuery.postType ?? "");
+  const [solved, setSolved] = useState<"" | "true" | "false">(initialQuery.solved ?? "");
+  const [page, setPage] = useState(initialQuery.page);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<SearchApiResponse | null>(null);
+  const [result, setResult] = useState<SearchApiResponse>({
+    data: initialResult.items,
+    meta: {
+      total: initialResult.total,
+      page: initialResult.page,
+      pageSize: initialResult.pageSize,
+      pageCount: initialResult.pageCount,
+      hasNextPage: initialResult.hasNextPage,
+      hasPrevPage: initialResult.hasPrevPage,
+    },
+  });
   const deferredQuery = useDeferredValue(q);
+  const hasMountedRef = useRef(false);
 
   const softwareOptions = useMemo(() => {
     if (!discipline) {
@@ -60,19 +78,36 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
   }, [discipline, disciplines]);
 
   useEffect(() => {
+    if (software && !softwareOptions.includes(software)) {
+      setSoftware("");
+    }
+  }, [software, softwareOptions]);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
+    setPage(1);
+  }, [deferredQuery, discipline, software, postType, solved]);
+
+  useEffect(() => {
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       setLoading(true);
       setError(null);
 
-      const params = new URLSearchParams();
-      if (deferredQuery.trim()) params.set("q", deferredQuery.trim());
-      if (discipline) params.set("discipline", discipline);
-      if (software) params.set("software", software);
-      if (postType) params.set("postType", postType);
-      if (solved) params.set("solved", solved);
-      params.set("page", "1");
-      params.set("pageSize", "24");
+      const params = buildParams({
+        q: deferredQuery.trim(),
+        discipline,
+        software,
+        postType,
+        solved,
+        page,
+      });
+
+      window.history.replaceState(null, "", params.toString() ? `/search?${params}` : "/search");
 
       const response = await fetch(`/api/search?${params.toString()}`, {
         signal: controller.signal,
@@ -100,23 +135,26 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [deferredQuery, discipline, software, postType, solved]);
+  }, [deferredQuery, discipline, software, postType, solved, page]);
 
-  const posts: CommunityPost[] =
-    result?.data.map((item) => ({
-      id: item.id,
-      slug: item.slug,
-      discipline: item.discipline as CommunityPost["discipline"],
-      type: item.postType,
-      title: item.title,
-      author: "Community member",
-      bodyPreview: item.bodyPreview,
-      createdAt: item.createdAt,
-      tags: item.tags,
-      software: item.software,
-      solved: item.solved,
-      answerCount: item.postType === "help" ? (item.solved ? 1 : 0) : undefined,
-    })) ?? [];
+  const posts: CommunityPost[] = useMemo(
+    () =>
+      result.data.map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        discipline: item.discipline as CommunityPost["discipline"],
+        type: item.postType,
+        title: item.title,
+        author: "Community member",
+        bodyPreview: item.bodyPreview,
+        createdAt: item.createdAt,
+        tags: item.tags,
+        software: item.software,
+        solved: item.solved,
+        answerCount: item.postType === "help" ? (item.solved ? 1 : 0) : undefined,
+      })),
+    [result.data],
+  );
 
   return (
     <div className="space-y-6">
@@ -209,15 +247,54 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
           <Badge variant="outline" className="rounded-lg px-3 py-1">
             freshness
           </Badge>
+          {discipline ? (
+            <Badge variant="secondary" className="rounded-lg px-3 py-1 capitalize">
+              Discipline: {discipline.replace(/-/g, " ")}
+            </Badge>
+          ) : null}
+          {software ? (
+            <Badge variant="secondary" className="rounded-lg px-3 py-1">
+              Software: {software}
+            </Badge>
+          ) : null}
+          {postType ? (
+            <Badge variant="secondary" className="rounded-lg px-3 py-1 capitalize">
+              Type: {postType}
+            </Badge>
+          ) : null}
         </div>
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-lg font-semibold tracking-tight">Search results</h3>
-          <p className="text-muted-foreground text-sm">
-            {result ? `${result.meta.total} matches` : "Loading..."}
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-semibold tracking-tight">Search results</h3>
+            <p className="text-muted-foreground text-sm">
+              {loading
+                ? "Refreshing results..."
+                : `${result.meta.total} matches · page ${result.meta.page} of ${result.meta.pageCount}`}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={loading || !result.meta.hasPrevPage}
+            >
+              <ChevronLeft className="size-4" /> Previous
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => setPage((current) => current + 1)}
+              disabled={loading || !result.meta.hasNextPage}
+            >
+              Next <ChevronRight className="size-4" />
+            </Button>
+          </div>
         </div>
 
         {loading ? (
@@ -241,4 +318,23 @@ export function SearchExperience({ disciplines }: SearchExperienceProps) {
       </section>
     </div>
   );
+}
+
+function buildParams(input: {
+  q: string;
+  discipline: string;
+  software: string;
+  postType: "" | CommunityPostType;
+  solved: "" | "true" | "false";
+  page: number;
+}) {
+  const params = new URLSearchParams();
+  if (input.q) params.set("q", input.q);
+  if (input.discipline) params.set("discipline", input.discipline);
+  if (input.software) params.set("software", input.software);
+  if (input.postType) params.set("postType", input.postType);
+  if (input.solved) params.set("solved", input.solved);
+  params.set("page", String(input.page));
+  params.set("pageSize", "24");
+  return params;
 }

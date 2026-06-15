@@ -13,7 +13,16 @@ export const commentCreateSchema = z.object({
     .max(2000, "Comment must be under 2000 characters."),
 });
 
+export const commentUpdateSchema = z.object({
+  body: z
+    .string()
+    .trim()
+    .min(3, "Comment must be at least 3 characters.")
+    .max(2000, "Comment must be under 2000 characters."),
+});
+
 export type CommentCreateInput = z.infer<typeof commentCreateSchema>;
+export type CommentUpdateInput = z.infer<typeof commentUpdateSchema>;
 
 export type CommentRecord = {
   id: string;
@@ -21,5 +30,8 @@ export type CommentRecord = {
   body: string;
   authorId: string;
   authorName: string;
+  voteCount: number;
+  isSolution: boolean;
   createdAt: string;
+  updatedAt: string;
 };

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+export const uploadPostTypes = ["discussion", "critique", "showcase", "help", "resource"] as const;
 export const allowedUploadMimeTypes = [
   "image/jpeg",
   "image/png",
@@ -8,7 +9,8 @@ export const allowedUploadMimeTypes = [
 ] as const;
 
 export const uploadRequestSchema = z.object({
-  postType: z.enum(["discussion", "critique", "showcase", "help", "resource"]),
+  postType: z.enum(uploadPostTypes),
+  currentCount: z.coerce.number().int().min(0).max(12).default(0),
 });
 
 export const uploadedAssetSchema = z.object({
@@ -28,3 +30,13 @@ export const uploadLimitsByPostType = {
   help: { maxFiles: 6, maxSizeBytes: 6 * 1024 * 1024 },
   resource: { maxFiles: 6, maxSizeBytes: 8 * 1024 * 1024 },
 } as const;
+
+export type UploadPostType = keyof typeof uploadLimitsByPostType;
+
+export function isAllowedUploadMimeType(value: string): value is (typeof allowedUploadMimeTypes)[number] {
+  return allowedUploadMimeTypes.includes(value as (typeof allowedUploadMimeTypes)[number]);
+}
+
+export function getUploadLimits(postType: UploadPostType) {
+  return uploadLimitsByPostType[postType];
+}

@@ -2,6 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { decodeCursor, encodeCursor } from "@/lib/pagination";
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/errors";
+import { buildAssetUrl } from "@/lib/r2/client";
 import { generateUniqueSlug as buildUniqueSlug } from "@/lib/slug";
 import { sanitizeText, sanitizeUrl } from "@/lib/sanitize";
 import type { PostCreationValidated } from "@/modules/posts/schemas/post-creation-schema";
@@ -9,6 +10,11 @@ import type {
   PostListQueryInput,
   PostUpdateInput,
 } from "@/modules/posts/schemas/post-api-schema";
+import {
+  getUploadLimits,
+  isAllowedUploadMimeType,
+  type UploadPostType,
+} from "@/modules/uploads/schemas/upload-schema";
 import { prisma } from "@/server/db/client";
 import { POST_CARD_SELECT, POST_FULL_INCLUDE } from "@/modules/posts/server/post-queries";
 
@@ -49,6 +55,7 @@ export async function createPost(authorId: string, input: PostCreationValidated)
   const tagNames = parseTags(input.tags);
   const resourceLinks = parseLinks(input.resourceLinks);
   const toolsUsed = parseCsv(input.toolsUsed);
+  const attachments = normalizeAttachments(input.postType, input.attachments);
 
   const created = await prisma.$transaction(async (tx) => {
     const post = await tx.post.create({
@@ -79,9 +86,9 @@ export async function createPost(authorId: string, input: PostCreationValidated)
           ? sanitizeText(input.resourceExplanation)
           : null,
         resourceLinks: resourceLinks.length > 0 ? resourceLinks : Prisma.JsonNull,
-        attachments: input.attachments.length
+        attachments: attachments.length
           ? {
-              create: input.attachments.map((asset) => ({
+              create: attachments.map((asset) => ({
                 key: asset.key,
                 url: asset.url,
                 mimeType: asset.mimeType,
@@ -288,7 +295,7 @@ export async function updatePost(postId: string, authorId: string, input: PostUp
   }
 
   if (input.attachments !== undefined) {
-    await replaceAttachments(postId, input.attachments);
+    await replaceAttachments(postId, existing.postType as UploadPostType, input.attachments);
   }
 
   const fresh = await prisma.post.findUniqueOrThrow({
@@ -368,19 +375,22 @@ async function syncPostTags(postId: string, tagInput: string) {
 
 async function replaceAttachments(
   postId: string,
+  postType: UploadPostType,
   attachments: Array<{ key: string; url: string; mimeType: string; size: number }>,
 ) {
+  const normalizedAttachments = normalizeAttachments(postType, attachments);
+
   await prisma.$transaction(async (tx) => {
     await tx.attachment.deleteMany({
       where: { postId },
     });
 
-    if (attachments.length === 0) {
+    if (normalizedAttachments.length === 0) {
       return;
     }
 
     await tx.attachment.createMany({
-      data: attachments.map((asset) => ({
+      data: normalizedAttachments.map((asset) => ({
         postId,
         key: asset.key,
         url: asset.url,
@@ -388,6 +398,45 @@ async function replaceAttachments(
         size: BigInt(asset.size),
       })),
     });
+  });
+}
+
+function normalizeAttachments(
+  postType: UploadPostType,
+  attachments: Array<{ key: string; url: string; mimeType: string; size: number }>,
+) {
+  const limits = getUploadLimits(postType);
+  const seenKeys = new Set<string>();
+
+  if (attachments.length > limits.maxFiles) {
+    throw new ConflictError(`Only ${limits.maxFiles} attachment(s) are allowed for ${postType} posts.`);
+  }
+
+  return attachments.map((asset) => {
+    if (!asset.key || !asset.key.startsWith(`${postType}/`)) {
+      throw new ConflictError("Attachment key does not match the selected post type.");
+    }
+
+    if (seenKeys.has(asset.key)) {
+      throw new ConflictError("Duplicate attachment detected.");
+    }
+
+    if (!isAllowedUploadMimeType(asset.mimeType)) {
+      throw new ConflictError("Attachment mime type is not allowed.");
+    }
+
+    if (asset.size > limits.maxSizeBytes) {
+      throw new ConflictError(`Attachment exceeds the ${postType} size limit.`);
+    }
+
+    seenKeys.add(asset.key);
+
+    return {
+      key: asset.key,
+      url: buildAssetUrl(asset.key),
+      mimeType: asset.mimeType,
+      size: asset.size,
+    };
   });
 }
 

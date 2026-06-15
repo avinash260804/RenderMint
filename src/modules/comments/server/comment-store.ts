@@ -9,7 +9,10 @@ const seededComments: CommentRecord[] = [
     body: "Start with a clear narrative board and keep your section diagrams consistent.",
     authorId: "seed-user-1",
     authorName: "Megha N",
+    voteCount: 4,
+    isSolution: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
   },
   {
     id: "seed-comment-2",
@@ -17,7 +20,10 @@ const seededComments: CommentRecord[] = [
     body: "Use one visual language for lineweights from concept to final sheets.",
     authorId: "seed-user-2",
     authorName: "Arjun M",
+    voteCount: 2,
+    isSolution: false,
     createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    updatedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
   },
 ];
 
@@ -36,6 +42,9 @@ export async function createComment(
     body: input.body,
     authorId: input.authorId,
     authorName: input.authorName,
+    voteCount: 0,
+    isSolution: false,
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
   };
 }

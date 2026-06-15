@@ -19,13 +19,19 @@ type HelpSolutionState = {
   isSolved: boolean;
   acceptedCommentId: string | null;
   updatedAt: string;
+  canManageSolution?: boolean;
 };
 
 export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
   const [comments, setComments] = useState<CommentRecord[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [solutionLoading, setSolutionLoading] = useState(false);
+  const [canManageSolution, setCanManageSolution] = useState(false);
+  const [savingCommentId, setSavingCommentId] = useState<string | null>(null);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingBody, setEditingBody] = useState("");
   const [solutionState, setSolutionState] = useState<HelpSolutionState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [body, setBody] = useState("");
@@ -41,6 +47,7 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
 
     const payload = (await response.json().catch(() => null)) as {
       data?: CommentRecord[];
+      meta?: { currentUserId?: string | null };
       error?: { message?: string };
     } | null;
 
@@ -51,6 +58,7 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     }
 
     setComments(payload?.data ?? []);
+    setCurrentUserId(payload?.meta?.currentUserId ?? null);
     setLoading(false);
   }, [postSlug]);
 
@@ -66,6 +74,7 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     });
     const payload = (await response.json().catch(() => null)) as {
       data?: HelpSolutionState;
+      meta?: { canManageSolution?: boolean };
       error?: { message?: string };
     } | null;
 
@@ -75,6 +84,7 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     }
 
     setSolutionState(payload.data);
+    setCanManageSolution(Boolean(payload?.meta?.canManageSolution ?? payload.data.canManageSolution));
   }, [isHelpThread, postSlug]);
 
   useEffect(() => {
@@ -110,6 +120,62 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     setSubmitting(false);
   }
 
+  async function saveCommentEdit(commentId: string) {
+    if (!editingBody.trim()) return;
+
+    setSavingCommentId(commentId);
+    setError(null);
+
+    const response = await fetch(`/api/comments/${commentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body: editingBody }),
+    });
+
+    const payload = (await response.json().catch(() => null)) as {
+      data?: CommentRecord;
+      error?: { message?: string };
+    } | null;
+
+    if (!response.ok || !payload?.data) {
+      setError(payload?.error?.message ?? "Failed to update comment.");
+      setSavingCommentId(null);
+      return;
+    }
+
+    setComments((current) =>
+      current.map((comment) => (comment.id === commentId ? payload.data! : comment)),
+    );
+    setEditingCommentId(null);
+    setEditingBody("");
+    setSavingCommentId(null);
+  }
+
+  async function removeComment(commentId: string) {
+    setSavingCommentId(commentId);
+    setError(null);
+
+    const response = await fetch(`/api/comments/${commentId}`, {
+      method: "DELETE",
+    });
+
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => null)) as {
+        error?: { message?: string };
+      } | null;
+      setError(payload?.error?.message ?? "Failed to delete comment.");
+      setSavingCommentId(null);
+      return;
+    }
+
+    setComments((current) => current.filter((comment) => comment.id !== commentId));
+    if (editingCommentId === commentId) {
+      setEditingCommentId(null);
+      setEditingBody("");
+    }
+    setSavingCommentId(null);
+  }
+
   async function toggleSolution(commentId: string) {
     if (!isHelpThread) return;
 
@@ -128,6 +194,7 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
 
     const payload = (await response.json().catch(() => null)) as {
       data?: HelpSolutionState;
+      meta?: { canManageSolution?: boolean };
       error?: { message?: string };
     } | null;
 
@@ -138,6 +205,7 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
     }
 
     setSolutionState(payload.data);
+    setCanManageSolution(Boolean(payload?.meta?.canManageSolution ?? payload.data.canManageSolution));
     setSolutionLoading(false);
   }
 
@@ -193,11 +261,68 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
                   <p className="text-sm font-medium">{comment.authorName}</p>
                   <time className="text-muted-foreground text-xs">
                     {new Date(comment.createdAt).toLocaleString()}
+                    {comment.updatedAt !== comment.createdAt ? " · edited" : ""}
                   </time>
                 </div>
-                <p className={cn("whitespace-pre-wrap text-sm")}>{comment.body}</p>
-                {isHelpThread ? (
-                  <div className="mt-3">
+                {editingCommentId === comment.id ? (
+                  <div className="space-y-3">
+                    <Textarea
+                      rows={3}
+                      value={editingBody}
+                      onChange={(event) => setEditingBody(event.target.value)}
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setEditingCommentId(null);
+                          setEditingBody("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => saveCommentEdit(comment.id)}
+                        disabled={savingCommentId === comment.id}
+                      >
+                        {savingCommentId === comment.id ? "Saving..." : "Save"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className={cn("whitespace-pre-wrap text-sm")}>{comment.body}</p>
+                )}
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  {comment.authorId === currentUserId ? (
+                    <>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setEditingCommentId(comment.id);
+                          setEditingBody(comment.body);
+                        }}
+                        disabled={savingCommentId === comment.id}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => removeComment(comment.id)}
+                        disabled={savingCommentId === comment.id}
+                      >
+                        {savingCommentId === comment.id ? "Deleting..." : "Delete"}
+                      </Button>
+                    </>
+                  ) : null}
+                  {isHelpThread && canManageSolution ? (
                     <Button
                       type="button"
                       size="sm"
@@ -211,8 +336,8 @@ export function CommentsPanel({ postSlug, postType }: CommentsPanelProps) {
                         ? "Unmark solution"
                         : "Mark as solution"}
                     </Button>
-                  </div>
-                ) : null}
+                  ) : null}
+                </div>
               </article>
             ))
           )}

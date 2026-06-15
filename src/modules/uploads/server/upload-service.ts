@@ -1,14 +1,17 @@
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { Readable } from "node:stream";
 import { randomUUID } from "crypto";
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 
+import { NotFoundError, ValidationError } from "@/lib/errors";
 import { buildAssetUrl, getR2BucketName, getR2Client, uploadsUseMockMode } from "@/lib/r2/client";
 import {
-  allowedUploadMimeTypes,
-  uploadLimitsByPostType,
+  getUploadLimits,
+  isAllowedUploadMimeType,
   type UploadedAsset,
+  type UploadPostType,
 } from "@/modules/uploads/schemas/upload-schema";
-
-type UploadPostType = keyof typeof uploadLimitsByPostType;
 
 type UploadInput = {
   file: File;
@@ -16,29 +19,27 @@ type UploadInput = {
 };
 
 export async function uploadAsset({ file, postType }: UploadInput): Promise<UploadedAsset> {
-  const limits = uploadLimitsByPostType[postType];
+  const limits = getUploadLimits(postType);
 
-  if (!allowedUploadMimeTypes.includes(file.type as (typeof allowedUploadMimeTypes)[number])) {
-    throw new Error("Unsupported file type. Use JPG, PNG, WEBP, or GIF.");
+  if (!isAllowedUploadMimeType(file.type)) {
+    throw new ValidationError("Unsupported file type. Use JPG, PNG, WEBP, or GIF.");
   }
 
   if (file.size > limits.maxSizeBytes) {
-    throw new Error(
+    throw new ValidationError(
       `File exceeds size limit of ${Math.floor(limits.maxSizeBytes / (1024 * 1024))}MB.`,
     );
   }
 
   const key = `${postType}/${new Date().toISOString().slice(0, 10)}/${randomUUID()}-${sanitizeName(file.name)}`;
-  const arrayBuffer = await file.arrayBuffer();
-  const bodyBuffer = Buffer.from(arrayBuffer);
+  const bodyBuffer = Buffer.from(await file.arrayBuffer());
 
   if (uploadsUseMockMode()) {
-    const base64 = bodyBuffer.toString("base64");
-    const dataUrl = `data:${file.type};base64,${base64}`;
+    await writeMockAsset(key, bodyBuffer);
 
     return {
       key,
-      url: dataUrl,
+      url: buildAssetUrl(key),
       mimeType: file.type,
       size: file.size,
       name: file.name,
@@ -49,7 +50,7 @@ export async function uploadAsset({ file, postType }: UploadInput): Promise<Uplo
   const bucket = getR2BucketName();
 
   if (!client || !bucket) {
-    throw new Error("R2 is not configured.");
+    throw new ValidationError("R2 is not configured.");
   }
 
   await client.send(
@@ -73,6 +74,10 @@ export async function uploadAsset({ file, postType }: UploadInput): Promise<Uplo
 }
 
 export async function getAssetObject(key: string) {
+  if (uploadsUseMockMode()) {
+    return getMockAssetObject(key);
+  }
+
   const client = getR2Client();
   const bucket = getR2BucketName();
 
@@ -89,10 +94,8 @@ export async function getAssetObject(key: string) {
     return null;
   }
 
-  const stream = result.Body.transformToWebStream();
-
   return {
-    stream,
+    stream: result.Body.transformToWebStream(),
     contentType: result.ContentType ?? "application/octet-stream",
     contentLength: result.ContentLength,
   };
@@ -100,4 +103,49 @@ export async function getAssetObject(key: string) {
 
 function sanitizeName(name: string) {
   return name.toLowerCase().replace(/[^a-z0-9.\-_]/g, "-");
+}
+
+async function writeMockAsset(key: string, body: Buffer) {
+  const filePath = resolveMockAssetPath(key);
+  await mkdir(join(process.cwd(), ".tmp", "uploads", ...key.split("/").slice(0, -1)), {
+    recursive: true,
+  });
+  await writeFile(filePath, body);
+}
+
+async function getMockAssetObject(key: string) {
+  try {
+    const buffer = await readFile(resolveMockAssetPath(key));
+
+    return {
+      stream: Readable.toWeb(Readable.from(buffer)),
+      contentType: inferMimeTypeFromKey(key),
+      contentLength: buffer.byteLength,
+    };
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return null;
+    }
+
+    throw new NotFoundError("Asset not found.");
+  }
+}
+
+function resolveMockAssetPath(key: string) {
+  return join(process.cwd(), ".tmp", "uploads", ...key.split("/"));
+}
+
+function inferMimeTypeFromKey(key: string) {
+  const normalized = key.toLowerCase();
+
+  if (normalized.endsWith(".jpg") || normalized.endsWith(".jpeg")) return "image/jpeg";
+  if (normalized.endsWith(".png")) return "image/png";
+  if (normalized.endsWith(".webp")) return "image/webp";
+  if (normalized.endsWith(".gif")) return "image/gif";
+
+  return "application/octet-stream";
+}
+
+function isMissingFileError(error: unknown) {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

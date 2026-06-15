@@ -1,4 +1,4 @@
- тип Failed to start server
+^Cип Failed to start server
 Error: listen EADDRINUSE: address already in use :::3002
     at Server.setupListenHandle [as _listen2] (node:net:2008:16)
     at listenInCluster (node:net:2065:12)

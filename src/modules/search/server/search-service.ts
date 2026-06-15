@@ -5,10 +5,13 @@ import { communityCatalogPosts, type CommunityPost } from "@/lib/community/catal
 import type { SearchQuery, SearchResultItem } from "@/modules/search/schemas/search-schema";
 import { prisma } from "@/server/db/client";
 
-type SearchPayload = {
+export type SearchPayload = {
   total: number;
   page: number;
   pageSize: number;
+  pageCount: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
   items: SearchResultItem[];
 };
 
@@ -109,6 +112,9 @@ async function performDatabaseSearch(query: SearchQuery): Promise<SearchPayload>
     total,
     page: query.page,
     pageSize: query.pageSize,
+    pageCount: Math.max(1, Math.ceil(total / query.pageSize)),
+    hasNextPage: end < total,
+    hasPrevPage: query.page > 1,
     items: scored.slice(start, end),
   };
 }
@@ -248,6 +254,9 @@ function performCatalogSearch(query: SearchQuery): SearchPayload {
     total,
     page: query.page,
     pageSize: query.pageSize,
+    pageCount: Math.max(1, Math.ceil(total / query.pageSize)),
+    hasNextPage: end < total,
+    hasPrevPage: query.page > 1,
     items: scored.slice(start, end),
   };
 }

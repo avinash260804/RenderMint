@@ -1,9 +1,13 @@
 import { Prisma } from "@prisma/client";
 
 import { canAttemptDatabaseQuery } from "@/lib/db/availability";
-import { NotFoundError } from "@/lib/errors";
+import { ForbiddenError, NotFoundError } from "@/lib/errors";
 import { sanitizeText } from "@/lib/sanitize";
-import type { CommentCreateInput, CommentRecord } from "@/modules/comments/schemas/comment-schema";
+import type {
+  CommentCreateInput,
+  CommentRecord,
+  CommentUpdateInput,
+} from "@/modules/comments/schemas/comment-schema";
 import { prisma } from "@/server/db/client";
 
 type PersistedComment = Prisma.CommentGetPayload<{
@@ -46,9 +50,7 @@ export async function listCommentsByPostSlug(postSlug: string) {
           },
         },
       },
-      orderBy: {
-        createdAt: "asc",
-      },
+      orderBy: [{ createdAt: "asc" }],
     });
 
     return comments.map((comment) => mapCommentRecord(comment, postSlug));
@@ -98,6 +100,100 @@ export async function createComment(input: CommentCreateInput & { authorId: stri
 
   return mapCommentRecord(created, input.postSlug);
 }
+
+export async function updateComment(commentId: string, authorId: string, input: CommentUpdateInput) {
+  const existing = await prisma.comment.findFirst({
+    where: {
+      id: commentId,
+      deletedAt: null,
+    } as never,
+    include: {
+      post: {
+        select: {
+          slug: true,
+        },
+      },
+      author: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  });
+
+  if (!existing) {
+    throw new NotFoundError("Comment not found.");
+  }
+
+  if (existing.authorId !== authorId) {
+    throw new ForbiddenError("You do not have permission to edit this comment.");
+  }
+
+  const updated = await prisma.comment.update({
+    where: { id: commentId },
+    data: {
+      body: sanitizeText(input.body),
+      editedAt: new Date(),
+      updatedAt: new Date(),
+    },
+    include: {
+      author: {
+        select: {
+          username: true,
+        },
+      },
+    },
+  });
+
+  return mapCommentRecord(updated, existing.post.slug);
+}
+
+export async function deleteComment(commentId: string, authorId: string) {
+  const existing = await prisma.comment.findFirst({
+    where: {
+      id: commentId,
+      deletedAt: null,
+    } as never,
+    select: {
+      id: true,
+      authorId: true,
+      postId: true,
+      isSolution: true,
+    },
+  });
+
+  if (!existing) {
+    throw new NotFoundError("Comment not found.");
+  }
+
+  if (existing.authorId !== authorId) {
+    throw new ForbiddenError("You do not have permission to delete this comment.");
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.comment.update({
+      where: { id: commentId },
+      data: {
+        deletedAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    await tx.post.update({
+      where: { id: existing.postId },
+      data: {
+        commentCount: { decrement: 1 },
+        ...(existing.isSolution
+          ? {
+              acceptedCommentId: null,
+              isSolved: false,
+            }
+          : {}),
+      },
+    });
+  });
+}
+
 function mapCommentRecord(comment: PersistedComment, postSlug: string) {
   return {
     id: comment.id,
@@ -105,6 +201,9 @@ function mapCommentRecord(comment: PersistedComment, postSlug: string) {
     body: comment.body,
     authorId: comment.authorId,
     authorName: comment.author.username,
+    voteCount: comment.voteCount,
+    isSolution: comment.isSolution,
     createdAt: comment.createdAt.toISOString(),
+    updatedAt: comment.updatedAt.toISOString(),
   } satisfies CommentRecord;
 }

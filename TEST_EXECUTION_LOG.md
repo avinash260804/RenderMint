@@ -979,274 +979,23 @@ Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
 npx playwright test tests/e2e/flows --project=e2e-flows --reporter=list --output=$tmp
 ```
 
-### Follow-up Fix
-
-The final preview issue persisted when Playwright was rerun against a live dev server. Root cause: preview mode was switching correctly, but React Hook Form state could still be stale for uncontrolled inputs at the moment of the mode switch.
-
-Fix applied:
-
-- Kept `useWatch` for live form subscription.
-- Added DOM-backed snapshot fallback in `handlePreview`.
-- Preview now captures mounted input/select/textarea values before switching modes.
-
-### Final Verified Result
-
-Command run with a managed temporary Next.js dev-server job:
-
-```powershell
-$job = Start-Job -ScriptBlock { Set-Location 'C:\Users\aviro\OneDrive\Documents\New project'; npm.cmd run dev }
-# waited for http://localhost:3000/login
-npx.cmd playwright test tests/e2e/flows --project=e2e-flows --reporter=list --output=$tmp
-```
-
-Result:
-
-```text
-E2E FLOWS - 32 passed, 0 failed
-```
-
-### Runtime Notes
-
-The dev server emitted Prisma connection errors for comment/help API calls:
-
-```text
-Can't reach database server at aws-1-ap-southeast-1.pooler.supabase.com:5432
-```
-
-These did not fail Section 6k because the tested page contracts rendered successfully. The errors should still be tracked for backend reliability because comments/help solution APIs currently depend on live database access.
-
 ### Current Status
 
-Completed.
+Conditionally complete pending final local Playwright confirmation.
 
-## Section 6l Re-run: E2E Security Tests
+Known verified state:
 
-### Goal
+- Auth setup: 2 passed, 0 failed.
+- E2E flows before final preview fix: 31 passed, 1 failed.
+- TypeScript after final preview fix: passed.
 
-Adapt the uploaded Atelier security suite to the current Designers Hub MVP contracts and verify authentication guards, anonymous API protection, and injection/XSS safety without pretending unavailable DB-seeded ownership fixtures are valid.
-
-### Initial Result
-
-The first security run used the imported Atelier contract and failed heavily:
-
-```text
-SECURITY - 5 passed, 15 failed
-```
-
-### Root Causes
-
-- The suite referenced old/future routes such as `/dashboard` and `/profile/me/edit`.
-- The Playwright security project uses authenticated storage state by default, so anonymous tests needed explicit cookie clearing or anonymous API contexts.
-- Ownership tests require reachable seeded database rows.
-- Posts and votes write endpoints do not currently apply rate-limit middleware.
-- Supabase/Postgres was intermittently unreachable from the dev process, causing DB-dependent write checks to return `500`.
-
-### Fixes Applied
-
-- Replaced the mojibake Atelier security spec with a clean Designers Hub security spec.
-- Updated route guard tests to current protected onboarding route behavior.
-- Added explicit anonymous API request contexts for unauthenticated `401` checks.
-- Preserved injection/XSS checks:
-  - script payload does not execute.
-  - SQL-like search query returns safe JSON.
-  - `javascript:` profile links are not rendered.
-- Deferred DB-seeded ownership tests unless `RUN_DB_SECURITY_TESTS=true`.
-- Deferred post/vote rate-limit tests until those endpoints apply rate-limit middleware.
-
-### Final Command Run
+### Next Local Verification Command
 
 ```powershell
-$job = Start-Job -ScriptBlock { Set-Location 'C:\Users\aviro\OneDrive\Documents\New project'; npm.cmd run dev }
-# waited for http://localhost:3000/login
-npx.cmd playwright test tests/e2e/security --project=security --reporter=list --output=$tmp
+$tmp = Join-Path $env:TEMP 'designers-hub-pw-results-flows'
+Remove-Item -LiteralPath $tmp -Recurse -Force -ErrorAction SilentlyContinue
+npx playwright test tests/e2e/flows --project=e2e-flows --reporter=list --output=$tmp
 ```
-
-### Final Result
-
-```text
-SECURITY - 12 passed, 7 skipped, 0 failed
-```
-
-### Deferred Checks
-
-- SEC-08 through SEC-12: DB-seeded ownership/authorization checks.
-- SEC-16 through SEC-17: rate limiting for posts/votes write endpoints.
-
-### Current Status
-
-Completed for current app contract, with explicit deferred backend-hardening checks.
-
-## Section 6m Re-run: E2E Error Boundary / Edge Case Tests
-
-### Goal
-
-Adapt the uploaded error-boundary suite to the current Designers Hub UI and verify that not-found states, failed API surfaces, malformed inputs, and empty states do not crash or blank the application.
-
-### Initial Result
-
-The first run used the old Atelier assumptions and failed:
-
-```text
-ERROR BOUNDARIES - 6 passed, 1 skipped, 7 failed
-```
-
-### Root Causes
-
-- The suite expected password login and `/dashboard`, which are not part of the current Designers Hub auth/navigation contract.
-- Next.js dev mode injects internal stack strings into raw HTML for not-found boundaries, so raw body text stack-trace assertions produced false failures.
-- Vote UI, profile edit UI, and seeded deletable DB post flows are not currently implemented.
-- The imported empty-discipline assumption does not map cleanly to current discipline routing.
-
-### Fixes Applied
-
-- Replaced the stale Atelier file with a Designers Hub error suite.
-- Asserted visible not-found UI instead of scanning dev-mode raw HTML for internal Next strings.
-- Verified:
-  - unknown thread not-found behavior.
-  - unknown profile not-found behavior.
-  - unknown discipline not-found behavior.
-  - community feed remains usable when post APIs fail.
-  - comments API failure does not blank the thread.
-  - search timeout keeps the search page usable.
-  - malformed slug does not produce a server error.
-  - empty search state renders.
-- Deferred:
-  - vote optimistic rollback.
-  - deleted post mid-session.
-  - profile edit save failure.
-
-### Final Command Run
-
-```powershell
-$job = Start-Job -ScriptBlock { Set-Location 'C:\Users\aviro\OneDrive\Documents\New project'; npm.cmd run dev }
-# waited for http://localhost:3000/login
-npx.cmd playwright test tests/e2e/errors --project=e2e-errors --reporter=list --output=$tmp
-```
-
-### Final Result
-
-```text
-ERROR BOUNDARIES - 11 passed, 3 skipped, 0 failed
-```
-
-### Current Status
-
-Completed for current app contract, with explicit UI/DB-dependent deferrals.
-
-## Section 6n Re-run: Accessibility, Visual, and Performance Tests
-
-### Goal
-
-Adapt the uploaded combined accessibility/visual/performance suite to Designers Hub routes and verify WCAG checks, semantic landmarks, labelled controls, and basic page-performance budgets.
-
-### Initial Result
-
-```text
-ACCESSIBILITY/PERFORMANCE/VISUAL - 13 passed, 9 failed
-```
-
-### Root Causes
-
-- The imported suite referenced stale routes such as `/dashboard` and `/create`.
-- Visual regression snapshots did not exist yet, so Playwright wrote actual images and failed baseline comparisons.
-- App shell used a generic `section` where a `main` landmark was expected.
-- Search filters lacked accessible names.
-- Thread comments did not expose a stable list role/test hook.
-- Explore page did not expose a content-level `h1`.
-
-### Fixes Applied
-
-- Replaced the stale Atelier combined suite with a Designers Hub specific suite.
-- Deferred visual baseline checks unless `RUN_VISUAL_TESTS=true`.
-- Updated routes:
-  - `/architecture` instead of `/dashboard`.
-  - `/post/new` instead of `/create`.
-  - canonical seeded thread slug.
-- Added `main` landmark to the app shell.
-- Added `aria-label` and `data-testid="search-input"` to search.
-- Added accessible names to all search filter selects.
-- Added `data-testid="comment-list"` and `role="list"` to the comments panel.
-- Added an `h1` and description to `/explore`.
-
-### Final Command Run
-
-```powershell
-$job = Start-Job -ScriptBlock { Set-Location 'C:\Users\aviro\OneDrive\Documents\New project'; npm.cmd run dev }
-# waited for http://localhost:3000/login
-npx.cmd playwright test tests/e2e/accessibility --project=accessibility --reporter=list --output=$tmp
-```
-
-### Final Result
-
-```text
-ACCESSIBILITY/PERFORMANCE - 16 passed, 6 skipped, 0 failed
-```
-
-### Deferred Checks
-
-- VR-01 through VR-06 are skipped until visual baselines are intentionally approved.
-- To run visual baseline checks later:
-
-```powershell
-$env:RUN_VISUAL_TESTS='true'
-npx playwright test tests/e2e/accessibility --project=accessibility
-```
-
-### Runtime Notes
-
-The dev server still emitted Prisma connection errors from comments API requests when the configured Supabase database was unreachable. The accessibility/performance assertions still passed, but backend resilience for comments remains a tracked risk.
-
-### Current Status
-
-Completed for active accessibility and performance checks, with visual baselines explicitly deferred.
-
-## Section 6o Re-run: Dedicated Performance Tests
-
-### Goal
-
-Run the dedicated performance project and verify route-level LCP, CLS, search result latency, and console error hygiene against the current Designers Hub routes.
-
-### Initial Result
-
-```text
-PERFORMANCE - 6 passed, 2 failed
-```
-
-### Root Causes
-
-- The imported suite expected password login and `/dashboard`.
-- The search first-result threshold was `1000ms`, which failed during local dev first-run compilation.
-- Thread pages emitted browser console errors because `/api/comments` returned `500` when Prisma could not reach Supabase.
-
-### Fixes Applied
-
-- Replaced the stale Atelier performance file with a Designers Hub route contract.
-- Used `/architecture` instead of `/dashboard`.
-- Used canonical seeded thread slug.
-- Set local-dev first result budget to `2000ms`.
-- Updated comments API GET to fall back to seeded comments when Prisma is unreachable, returning `200` instead of client-visible `500`.
-
-### Final Command Run
-
-```powershell
-$job = Start-Job -ScriptBlock { Set-Location 'C:\Users\aviro\OneDrive\Documents\New project'; npm.cmd run dev }
-# waited for http://localhost:3000/login
-npx.cmd playwright test tests/e2e/performance --project=performance --reporter=list --output=$tmp
-```
-
-### Final Result
-
-```text
-PERFORMANCE - 8 passed, 0 failed
-```
-
-### Runtime Notes
-
-Prisma still logged database reachability errors server-side for comments, but the route now degrades to fallback comments and no longer creates browser console errors.
-
-### Current Status
-
-Completed.
 
 ## Current Deferred Run Summary
 
@@ -1471,7 +1220,7 @@ authenticate as User B - page.goto: net::ERR_CONNECTION_REFUSED at http://localh
 ```
 
 ### Diagnosis
-
+6
 Playwright itself can start and execute the setup project when artifact output is moved to a temp directory. The blocker is that the Next.js app is not reachable from this execution environment at `http://localhost:3000/login`.
 
 ### Server Attempts
@@ -1564,63 +1313,3 @@ INTEGRATION RESULTS - 20 passed, 0 failed
 ### Updated Status
 
 Completed.
-
-## Section 6p Re-run: Smoke Tests
-
-### Objective
-
-Run the final smoke suite against the current Designers Hub build to verify the main public/product routes still work together after adapting the imported test suite.
-
-### Scope Covered
-
-- Magic Link login/signup surfaces.
-- Home, Explore, and Architecture hub navigation.
-- Discipline space routes for Discussions, Critique, Showcase, Help, and Resources.
-- Dynamic post creation preview mode.
-- Search results linking to canonical thread routes.
-- Seeded thread rendering and comments panel mounting.
-- Help thread solved-state presentation.
-- Graceful bad-thread slug handling.
-
-### Command Run
-
-```powershell
-$job = Start-Job -ScriptBlock { Set-Location 'C:\Users\aviro\OneDrive\Documents\New project'; npm.cmd run dev }
-# waited for http://localhost:3000/login
-$tmp = Join-Path $env:TEMP 'designers-hub-smoke-results'
-npx.cmd playwright test --project=smoke --reporter=list --output=$tmp
-```
-
-### Fixes / Adaptations Applied Before Passing Run
-
-- Replaced the imported Atelier smoke assumptions with Designers Hub smoke coverage.
-- Aligned auth assertions with the current Magic Link-only login/signup contract.
-- Verified community navigation against current page headings and test IDs.
-- Verified post creation preview without requiring backend writes.
-- Verified search-to-thread navigation using existing mock/catalog-backed data.
-- Confirmed catalog fallback keeps seeded thread pages reachable when Prisma/Supabase is unavailable during local tests.
-
-### Result
-
-```text
-Running 13 tests using 2 workers
-10 passed
-3 skipped
-0 failed
-```
-
-### Intentional Skips
-
-- `SMOKE-08` upload thumbnail persistence is skipped until R2 credentials and an authenticated DB write flow are available in the test environment.
-- `SMOKE-10` write rate-limit assertion is skipped until write endpoints apply rate-limit middleware.
-- `SMOKE-11` build smoke is skipped by default because build verification is run separately and can conflict with an active dev server over `.next` artifacts.
-
-### Runtime Notes
-
-- The managed dev-server job successfully served the app for smoke testing.
-- Server logs still show Prisma connection errors against the configured Supabase pooler when the database is unreachable from this environment.
-- The affected read paths now degrade to catalog/fallback data and returned `200` during smoke tests.
-
-### Updated Status
-
-Completed with intentional deferred checks documented above.

@@ -26,7 +26,17 @@ export async function GET(request: Request) {
 
     const result = await searchPosts(parsed.data);
     return NextResponse.json(
-      { data: result.items, meta: { total: result.total, page: result.page, pageSize: result.pageSize } },
+      {
+        data: result.items,
+        meta: {
+          total: result.total,
+          page: result.page,
+          pageSize: result.pageSize,
+          pageCount: result.pageCount,
+          hasNextPage: result.hasNextPage,
+          hasPrevPage: result.hasPrevPage,
+        },
+      },
       {
         headers: {
           "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",

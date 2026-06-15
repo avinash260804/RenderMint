@@ -6,7 +6,10 @@ import { useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { UploadedAsset } from "@/modules/uploads/schemas/upload-schema";
+import {
+  getUploadLimits,
+  type UploadedAsset,
+} from "@/modules/uploads/schemas/upload-schema";
 
 type PostType = "discussion" | "critique" | "showcase" | "help" | "resource";
 
@@ -29,42 +32,58 @@ export function AssetUploader({ postType, assets, onChange, error }: AssetUpload
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const limits = getUploadLimits(postType);
+  const remainingSlots = Math.max(0, limits.maxFiles - assets.length);
 
   async function handleFileSelection(event: React.ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
     if (!files.length) return;
+    if (remainingSlots === 0) {
+      setUploadError(`You have already reached the ${limits.maxFiles}-file limit.`);
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
 
     setUploading(true);
     setUploadError(null);
 
     const nextAssets: UploadedAsset[] = [...assets];
+    const filesToUpload = files.slice(0, remainingSlots);
 
-    for (const file of files) {
-      const formData = new FormData();
-      formData.set("file", file);
-      formData.set("postType", postType);
-
-      const response = await fetch("/api/uploads", {
-        method: "POST",
-        body: formData,
-      });
-
-      const payload = (await response.json().catch(() => null)) as {
-        data?: UploadedAsset;
-        error?: { message?: string };
-      } | null;
-
-      if (!response.ok || !payload?.data) {
-        setUploadError(payload?.error?.message ?? "Upload failed.");
-        continue;
-      }
-
-      nextAssets.push(payload.data);
+    if (files.length > remainingSlots) {
+      setUploadError(`Only ${remainingSlots} more file(s) can be uploaded for this post type.`);
     }
 
-    onChange(nextAssets);
-    setUploading(false);
-    if (inputRef.current) inputRef.current.value = "";
+    try {
+      for (const file of filesToUpload) {
+        const formData = new FormData();
+        formData.set("file", file);
+        formData.set("postType", postType);
+        formData.set("currentCount", String(nextAssets.length));
+
+        const response = await fetch("/api/uploads", {
+          method: "POST",
+          body: formData,
+        });
+
+        const payload = (await response.json().catch(() => null)) as {
+          data?: UploadedAsset;
+          error?: { message?: string };
+        } | null;
+
+        if (!response.ok || !payload?.data) {
+          setUploadError(payload?.error?.message ?? "Upload failed.");
+          continue;
+        }
+
+        nextAssets.push(payload.data);
+      }
+
+      onChange(nextAssets);
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
   }
 
   function removeAsset(index: number) {
@@ -77,7 +96,9 @@ export function AssetUploader({ postType, assets, onChange, error }: AssetUpload
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-medium">Attachments</p>
-          <p className="text-muted-foreground text-xs">{hintByType[postType]}</p>
+          <p className="text-muted-foreground text-xs">
+            {hintByType[postType]} {assets.length}/{limits.maxFiles} uploaded.
+          </p>
         </div>
         <input
           ref={inputRef}
@@ -87,7 +108,13 @@ export function AssetUploader({ postType, assets, onChange, error }: AssetUpload
           className="hidden"
           onChange={handleFileSelection}
         />
-        <Button type="button" variant="outline" size="sm" onClick={() => inputRef.current?.click()}>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={uploading || remainingSlots === 0}
+          onClick={() => inputRef.current?.click()}
+        >
           <UploadCloud className="size-4" /> Add files
         </Button>
       </div>

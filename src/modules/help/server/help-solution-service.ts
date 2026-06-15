@@ -1,6 +1,6 @@
 import { getCommunityPostBySlug } from "@/lib/community/catalog";
 import { canAttemptDatabaseQuery } from "@/lib/db/availability";
-import { ForbiddenError, NotFoundError } from "@/lib/errors";
+import { AppError, ForbiddenError, NotFoundError } from "@/lib/errors";
 import type { HelpSolutionState } from "@/modules/help/schemas/help-solution-schema";
 import {
   getHelpSolutionState as getFallbackHelpSolutionState,
@@ -8,7 +8,10 @@ import {
 } from "@/modules/help/server/help-solution-store";
 import { prisma } from "@/server/db/client";
 
-export async function getHelpSolutionState(postSlug: string): Promise<HelpSolutionState> {
+export async function getHelpSolutionState(
+  postSlug: string,
+  userId?: string | null,
+): Promise<HelpSolutionState> {
   if (!(await canAttemptDatabaseQuery())) {
     const catalogPost = getCommunityPostBySlug(postSlug);
     if (catalogPost?.type === "help") {
@@ -27,6 +30,7 @@ export async function getHelpSolutionState(postSlug: string): Promise<HelpSoluti
       } as never,
       select: {
         slug: true,
+        authorId: true,
         isSolved: true,
         acceptedCommentId: true,
         updatedAt: true,
@@ -39,9 +43,14 @@ export async function getHelpSolutionState(postSlug: string): Promise<HelpSoluti
         isSolved: post.isSolved,
         acceptedCommentId: post.acceptedCommentId,
         updatedAt: post.updatedAt.toISOString(),
+        canManageSolution: Boolean(userId && post.authorId === userId),
       };
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     const catalogPost = getCommunityPostBySlug(postSlug);
     if (catalogPost?.type === "help") {
       return getFallbackHelpSolutionState(postSlug);
@@ -137,9 +146,14 @@ export async function setHelpSolution(postSlug: string, commentId: string | null
         isSolved: updated.isSolved,
         acceptedCommentId: updated.acceptedCommentId,
         updatedAt: updated.updatedAt.toISOString(),
+        canManageSolution: true,
       } satisfies HelpSolutionState;
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+
     const catalogPost = getCommunityPostBySlug(postSlug);
     if (catalogPost?.type === "help") {
       return setFallbackHelpSolution(postSlug, commentId);

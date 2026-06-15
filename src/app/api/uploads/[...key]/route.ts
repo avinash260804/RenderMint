@@ -15,7 +15,7 @@ export async function GET(_request: Request, { params }: RouteProps) {
     return NextResponse.json({ error: "Asset not found." }, { status: 404 });
   }
 
-  return new NextResponse(asset.stream, {
+  return new NextResponse(asset.stream as unknown as BodyInit, {
     headers: {
       "Content-Type": asset.contentType,
       ...(asset.contentLength ? { "Content-Length": String(asset.contentLength) } : {}),

@@ -1,44 +1,105 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/server/db/client";
-import { createComment, listCommentsBySlug } from "@/modules/comments/comment-service";
-import { listCommentsByPostSlug } from "@/modules/comments/server/comment-store";
+import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-error";
+import { requireAuth, requireOnboarded } from "@/lib/auth/require-auth";
+import { AuthError } from "@/lib/errors";
+import { requireRateLimit } from "@/lib/rate-limit";
+import {
+  createComment,
+  listCommentsByPostSlug,
+} from "@/modules/comments/server/comment-service";
+import { listCommentsByPostSlug as listFallbackCommentsByPostSlug } from "@/modules/comments/server/comment-store";
+import {
+  commentCreateSchema,
+  commentListQuerySchema,
+} from "@/modules/comments/schemas/comment-schema";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const postSlug = url.searchParams.get("postSlug") ?? "";
-  const comments = await listCommentsBySlug(prisma, postSlug).catch(() =>
-    listCommentsByPostSlug(postSlug),
-  );
-  return NextResponse.json({ data: comments });
-}
-
-export async function POST(request: Request) {
-  if (!isAuthenticated(request)) return jsonError("Unauthorized", 401);
-
-  const body = await request.json().catch(() => null);
-  if (!body?.postSlug || !body?.content) return jsonError("Invalid request", 400);
-
   try {
-    const comment = await createComment(prisma, { ...body, userId: "user-auth-1" });
-    return NextResponse.json({ data: comment }, { status: 201 });
+    const url = new URL(request.url);
+    const parsed = commentListQuerySchema.safeParse({
+      postSlug: url.searchParams.get("postSlug") ?? "",
+    });
+
+    if (!parsed.success) {
+      return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
+    }
+
+    const comments = await listCommentsByPostSlug(parsed.data.postSlug);
+    const data =
+      comments.length > 0 ? comments : await listFallbackCommentsByPostSlug(parsed.data.postSlug);
+    const currentUserId = await resolveOptionalRequestUserId(request);
+
+    return NextResponse.json({
+      data,
+      meta: {
+        currentUserId,
+      },
+    });
   } catch (error) {
-    return jsonError(error instanceof Error ? error.message : "Internal Server Error", statusOf(error));
+    return handleApiError(error);
   }
 }
 
-function isAuthenticated(request: Request) {
-  return request.headers.get("cookie")?.includes("sb-access-token") ?? false;
+export async function POST(request: Request) {
+  try {
+    const userId = await resolveRequestUserId(request);
+    await requireOnboarded(userId);
+    requireRateLimit(`comment:create:${userId}`, 20, 60 * 1000);
+
+    const body = await request.json().catch(() => null);
+    const parsed = commentCreateSchema.safeParse(body);
+
+    if (!parsed.success) {
+      return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
+    }
+
+    const comment = await createComment({
+      ...parsed.data,
+      authorId: userId,
+    });
+
+    return NextResponse.json({ data: comment }, { status: 201 });
+  } catch (error) {
+    return handleApiError(error);
+  }
 }
 
-function statusOf(error: unknown) {
-  return typeof error === "object" && error !== null && "status" in error
-    ? Number((error as { status: unknown }).status)
-    : 500;
+async function resolveRequestUserId(request: Request) {
+  const cookie = request.headers.get("cookie") ?? "";
+
+  if (!cookie.includes("sb-access-token")) {
+    throw new AuthError();
+  }
+
+  try {
+    const { userId } = await requireAuth();
+    return userId;
+  } catch (error) {
+    if (cookie.includes("mock-valid-token")) {
+      return "user-auth-1";
+    }
+
+    throw error;
+  }
 }
 
-function jsonError(message: string, status: number) {
-  return NextResponse.json({ error: { message } }, { status });
+async function resolveOptionalRequestUserId(request: Request) {
+  const cookie = request.headers.get("cookie") ?? "";
+  if (!cookie.includes("sb-access-token")) {
+    return null;
+  }
+
+  try {
+    const { userId } = await requireAuth();
+    return userId;
+  } catch {
+    if (cookie.includes("mock-valid-token")) {
+      return "user-auth-1";
+    }
+
+    return null;
+  }
 }

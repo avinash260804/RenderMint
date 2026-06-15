@@ -2,53 +2,32 @@ import { NextResponse } from "next/server";
 
 import { apiError, formatZodErrors, handleApiError } from "@/lib/api/handle-error";
 import { requireAuth, requireOnboarded } from "@/lib/auth/require-auth";
-import { AuthError, NotFoundError } from "@/lib/errors";
+import { AuthError } from "@/lib/errors";
 import {
-  deletePost,
-  getPostBySlug,
-  updatePost,
-} from "@/modules/posts/server/post-service";
-import { postUpdateSchema } from "@/modules/posts/schemas/post-api-schema";
+  deleteComment,
+  updateComment,
+} from "@/modules/comments/server/comment-service";
+import { commentUpdateSchema } from "@/modules/comments/schemas/comment-schema";
 
 type RouteProps = {
-  params: Promise<{ slug: string }> | { slug: string };
+  params: Promise<{ commentId: string }> | { commentId: string };
 };
-
-export async function GET(_: Request, { params }: RouteProps) {
-  try {
-    const { slug } = await params;
-    const post = await getPostBySlug(slug);
-
-    if (!post) {
-      throw new NotFoundError("Post not found.");
-    }
-
-    return NextResponse.json({ data: post });
-  } catch (error) {
-    return handleApiError(error);
-  }
-}
 
 export async function PATCH(request: Request, { params }: RouteProps) {
   try {
     const userId = await resolveRequestUserId(request);
     await requireOnboarded(userId);
 
-    const { slug } = await params;
-    const existing = await getPostBySlug(slug);
-    if (!existing) {
-      throw new NotFoundError("Post not found.");
-    }
-
     const body = await request.json().catch(() => null);
-    const parsed = postUpdateSchema.safeParse(body ?? {});
+    const parsed = commentUpdateSchema.safeParse(body);
 
     if (!parsed.success) {
       return apiError("VALIDATION_ERROR", formatZodErrors(parsed.error), 400);
     }
 
-    const post = await updatePost(existing.id, userId, parsed.data);
-    return NextResponse.json({ data: post });
+    const { commentId } = await params;
+    const comment = await updateComment(commentId, userId, parsed.data);
+    return NextResponse.json({ data: comment });
   } catch (error) {
     return handleApiError(error);
   }
@@ -59,13 +38,8 @@ export async function DELETE(request: Request, { params }: RouteProps) {
     const userId = await resolveRequestUserId(request);
     await requireOnboarded(userId);
 
-    const { slug } = await params;
-    const existing = await getPostBySlug(slug);
-    if (!existing) {
-      throw new NotFoundError("Post not found.");
-    }
-
-    await deletePost(existing.id, userId);
+    const { commentId } = await params;
+    await deleteComment(commentId, userId);
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     return handleApiError(error);
