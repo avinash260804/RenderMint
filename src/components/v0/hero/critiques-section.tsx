@@ -58,8 +58,8 @@ const stageColors: Record<string, string> = {
   Prototype: "text-accent border-accent/40",
 }
 
-const CARD_W = 560
-const CARD_H = 340
+const CARD_W = 680
+const CARD_H = 410
 
 export function CritiquesSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -109,7 +109,7 @@ export function CritiquesSection() {
 
   return (
     /* FIX: was pl-6 md:pl-[268px] — SideNav is now 52px wide, sections offset by lg:pl-[52px] */
-    <section id="critiques" ref={sectionRef} className="relative py-32 px-6 md:px-16 lg:pl-[calc(52px+4rem)]">
+    <section id="critiques" ref={sectionRef} className="relative overflow-hidden px-6 py-32 md:px-16 lg:pl-[calc(52px+4rem)]">
       {/* Section header */}
       <div ref={headerRef} className="mb-16">
         <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">01 / Critiques</span>
@@ -122,11 +122,11 @@ export function CritiquesSection() {
       {/* Layout: info panel left, CardSwap right */}
       <div
         ref={wrapRef}
-        className="relative flex flex-col md:flex-row gap-10 md:gap-0 items-start md:items-stretch"
-        style={{ minHeight: CARD_H + 80 }}
+        className="relative flex flex-col items-start gap-10 md:flex-row md:items-stretch md:justify-between"
+        style={{ minHeight: CARD_H + 90 }}
       >
         {/* Left — active critique info */}
-        <div className="flex-1 flex flex-col justify-between pr-0 md:pr-16 max-w-lg">
+        <div className="flex max-w-xl flex-1 flex-col justify-between pr-0 md:pr-10 lg:pr-16">
           <div>
             <div className="flex items-center gap-3 mb-5">
               <span className="font-mono text-[10px] uppercase tracking-widest text-accent">
@@ -202,14 +202,14 @@ export function CritiquesSection() {
 
         {/* Right — CardSwap stack */}
         <div
-          className="relative hidden md:block flex-shrink-0"
-          style={{ width: CARD_W + 180, height: CARD_H + 120 }}
+          className="relative hidden flex-shrink-0 md:block"
+          style={{ width: CARD_W + 220, height: CARD_H + 130 }}
         >
           <CardSwap
             width={CARD_W}
             height={CARD_H}
-            cardDistance={50}
-            verticalDistance={60}
+            cardDistance={62}
+            verticalDistance={76}
             delay={5000}
             pauseOnHover
             skewAmount={5}

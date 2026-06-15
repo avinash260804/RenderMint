@@ -47,7 +47,7 @@ export function SideNav() {
 
   return (
     <nav
-      className="hero-side-nav fixed left-0 top-0 z-40 hidden h-screen w-[52px] flex-col justify-center border-r border-border/20 bg-background/60 backdrop-blur-md lg:flex"
+      className="hero-side-nav fixed left-0 top-0 z-20 hidden h-screen w-[52px] flex-col justify-center border-r border-border/20 bg-background/60 backdrop-blur-md lg:flex"
       aria-label="Section navigation"
     >
       <div className="absolute left-1/2 top-8 -translate-x-1/2">

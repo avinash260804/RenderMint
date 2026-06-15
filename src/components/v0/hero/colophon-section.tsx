@@ -43,10 +43,11 @@ export function ColophonSection() {
     <section
       ref={sectionRef}
       id="colophon"
-      className="relative py-24 px-6 md:px-16 border-t border-border/30"
+      className="relative border-t border-border/30 px-6 py-24 md:px-16"
     >
+      <div className="dashboard-grid-overlay" aria-hidden="true" />
       {/* Section header */}
-      <div ref={headerRef} className="mb-10">
+      <div ref={headerRef} className="relative z-10 mb-10 max-w-3xl">
         <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-accent">
           05 / Community
         </span>
@@ -59,7 +60,7 @@ export function ColophonSection() {
       </div>
 
       {/* Magic Bento community preview */}
-      <div ref={bentoRef} className="-mx-3">
+      <div ref={bentoRef} className="relative z-10 -mx-3">
         <MagicBento
           enableStars={true}
           enableSpotlight={true}
@@ -74,7 +75,7 @@ export function ColophonSection() {
       {/* Footer link columns */}
       <div
         ref={footerRef}
-        className="mt-16 grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-12 border-t border-border/20 pt-12"
+        className="relative z-10 mt-16 grid grid-cols-2 gap-8 border-t border-border/20 pt-12 md:grid-cols-5 md:gap-12"
       >
         {/* Disciplines */}
         <div>
@@ -164,7 +165,7 @@ export function ColophonSection() {
       </div>
 
       {/* Copyright bar */}
-      <div className="mt-12 pt-8 border-t border-border/20 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="relative z-10 mt-12 flex flex-col gap-4 border-t border-border/20 pt-8 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-3">
           <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
           <p className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">

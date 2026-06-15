@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight, Search, SlidersHorizontal } from "lucide-rea
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 
 import { PostGrid } from "@/components/forum/post-grid";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { CommunityPost, CommunityPostType, DisciplineData } from "@/lib/community/catalog";
@@ -156,120 +155,121 @@ export function SearchExperience({
     [result.data],
   );
 
+  const activeFilters = [
+    discipline ? `Discipline: ${discipline.replace(/-/g, " ")}` : null,
+    software ? `Software: ${software}` : null,
+    postType ? `Type: ${postType}` : null,
+    solved === "true" ? "Solved only" : null,
+    solved === "false" ? "Unsolved or other" : null,
+  ].filter(Boolean) as string[];
+
   return (
     <div className="space-y-6">
-      <section className="border-border/70 bg-card/70 rounded-2xl border p-5">
-        <div className="mb-4 flex items-center gap-2">
-          <SlidersHorizontal className="text-muted-foreground size-4" />
-          <p className="text-sm font-medium">Search & filters</p>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          <div className="relative md:col-span-2 xl:col-span-2">
-            <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-            <Input
-              aria-label="Search"
-              data-testid="search-input"
-              value={q}
-              onChange={(event) => setQ(event.target.value)}
-              placeholder="Search title, body preview, software, tags..."
-              className="pl-9"
-            />
+      <section className="atelier-panel p-5 sm:p-6">
+        <div className="atelier-community-grid" aria-hidden="true" />
+        <div className="relative z-10">
+          <p className="mb-2 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[oklch(0.72_0.08_55)]">
+            Search
+          </p>
+          <div className="mb-5 flex items-center gap-2">
+            <SlidersHorizontal className="size-4 text-muted-foreground" />
+            <p className="text-base font-semibold text-foreground">Search & filters</p>
           </div>
 
-          <select
-            aria-label="Discipline filter"
-            className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
-            value={discipline}
-            onChange={(event) => {
-              setDiscipline(event.target.value);
-              setSoftware("");
-            }}
-          >
-            <option value="">All disciplines</option>
-            {disciplines.map((item) => (
-              <option key={item.slug} value={item.slug}>
-                {item.name}
-              </option>
-            ))}
-          </select>
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            <div className="relative md:col-span-2 xl:col-span-2">
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                aria-label="Search"
+                data-testid="search-input"
+                value={q}
+                onChange={(event) => setQ(event.target.value)}
+                placeholder="Search title, body preview, software, tags..."
+                className="atelier-search-input rounded-2xl pl-9"
+              />
+            </div>
 
-          <select
-            aria-label="Software filter"
-            className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
-            value={software}
-            onChange={(event) => setSoftware(event.target.value)}
-          >
-            <option value="">All software</option>
-            {softwareOptions.map((item) => (
-              <option key={item} value={item}>
+            <select
+              aria-label="Discipline filter"
+              className="atelier-select px-3 outline-none"
+              value={discipline}
+              onChange={(event) => {
+                setDiscipline(event.target.value);
+                setSoftware("");
+              }}
+            >
+              <option value="">All disciplines</option>
+              {disciplines.map((item) => (
+                <option key={item.slug} value={item.slug}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Software filter"
+              className="atelier-select px-3 outline-none"
+              value={software}
+              onChange={(event) => setSoftware(event.target.value)}
+            >
+              <option value="">All software</option>
+              {softwareOptions.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Post type filter"
+              className="atelier-select px-3 outline-none"
+              value={postType}
+              onChange={(event) => setPostType((event.target.value as CommunityPostType) || "")}
+            >
+              <option value="">All post types</option>
+              {postTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+
+            <select
+              aria-label="Solved state filter"
+              className="atelier-select px-3 outline-none"
+              value={solved}
+              onChange={(event) => setSolved((event.target.value as "true" | "false") || "")}
+            >
+              <option value="">All solved states</option>
+              <option value="true">Solved only</option>
+              <option value="false">Unsolved or other</option>
+            </select>
+          </div>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="atelier-chip" data-active="true">
+              Ranking: relevance
+            </span>
+            <span className="atelier-chip">Solved help boost</span>
+            <span className="atelier-chip">Engagement</span>
+            <span className="atelier-chip">Freshness</span>
+            {activeFilters.map((item) => (
+              <span key={item} className="atelier-chip" data-active="true">
                 {item}
-              </option>
+              </span>
             ))}
-          </select>
-
-          <select
-            aria-label="Post type filter"
-            className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
-            value={postType}
-            onChange={(event) => setPostType((event.target.value as CommunityPostType) || "")}
-          >
-            <option value="">All post types</option>
-            {postTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-
-          <select
-            aria-label="Solved state filter"
-            className="border-input focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 h-8 rounded-lg border bg-transparent px-2.5 text-sm outline-none"
-            value={solved}
-            onChange={(event) => setSolved((event.target.value as "true" | "false") || "")}
-          >
-            <option value="">All solved states</option>
-            <option value="true">Solved only</option>
-            <option value="false">Unsolved/other</option>
-          </select>
-        </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <Badge variant="outline" className="rounded-lg px-3 py-1">
-            Ranking: relevance
-          </Badge>
-          <Badge variant="outline" className="rounded-lg px-3 py-1">
-            solved help boost
-          </Badge>
-          <Badge variant="outline" className="rounded-lg px-3 py-1">
-            engagement
-          </Badge>
-          <Badge variant="outline" className="rounded-lg px-3 py-1">
-            freshness
-          </Badge>
-          {discipline ? (
-            <Badge variant="secondary" className="rounded-lg px-3 py-1 capitalize">
-              Discipline: {discipline.replace(/-/g, " ")}
-            </Badge>
-          ) : null}
-          {software ? (
-            <Badge variant="secondary" className="rounded-lg px-3 py-1">
-              Software: {software}
-            </Badge>
-          ) : null}
-          {postType ? (
-            <Badge variant="secondary" className="rounded-lg px-3 py-1 capitalize">
-              Type: {postType}
-            </Badge>
-          ) : null}
+          </div>
         </div>
       </section>
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold tracking-tight">Search results</h3>
-            <p className="text-muted-foreground text-sm">
+            <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[oklch(0.72_0.08_55)]">
+              Archive
+            </p>
+            <h3 className="text-lg font-semibold tracking-tight text-foreground">Search results</h3>
+            <p className="font-mono text-[0.72rem] uppercase tracking-[0.16em] text-muted-foreground">
               {loading
                 ? "Refreshing results..."
                 : `${result.meta.total} matches · page ${result.meta.page} of ${result.meta.pageCount}`}
@@ -280,6 +280,7 @@ export function SearchExperience({
               type="button"
               size="sm"
               variant="outline"
+              className="rounded-full border-white/10 bg-white/[0.03] font-mono text-[0.68rem] uppercase tracking-[0.16em] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
               onClick={() => setPage((current) => Math.max(1, current - 1))}
               disabled={loading || !result.meta.hasPrevPage}
             >
@@ -289,6 +290,7 @@ export function SearchExperience({
               type="button"
               size="sm"
               variant="outline"
+              className="rounded-full border-white/10 bg-white/[0.03] font-mono text-[0.68rem] uppercase tracking-[0.16em] text-muted-foreground hover:bg-white/[0.06] hover:text-foreground"
               onClick={() => setPage((current) => current + 1)}
               disabled={loading || !result.meta.hasNextPage}
             >
@@ -299,11 +301,11 @@ export function SearchExperience({
 
         {loading ? (
           <div className="space-y-2">
-            <div className="bg-muted h-16 animate-pulse rounded-xl" />
-            <div className="bg-muted h-16 animate-pulse rounded-xl" />
+            <div className="h-28 animate-pulse rounded-2xl border border-white/8 bg-white/[0.04]" />
+            <div className="h-28 animate-pulse rounded-2xl border border-white/8 bg-white/[0.04]" />
           </div>
         ) : error ? (
-          <div className="text-destructive border-destructive/30 bg-destructive/5 rounded-xl border px-4 py-3 text-sm">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
             {error}
           </div>
         ) : (

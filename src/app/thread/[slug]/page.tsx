@@ -135,7 +135,9 @@ export default async function ThreadPage({ params }: ThreadPageProps) {
         {helpJsonLd ? (
           <script
             type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(helpJsonLd) }}
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify(helpJsonLd).replace(/</g, "\\u003c"),
+            }}
           />
         ) : null}
         <Card className="border-border/70 bg-card/80 rounded-2xl">

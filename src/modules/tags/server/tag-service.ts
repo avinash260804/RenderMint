@@ -41,7 +41,7 @@ export async function listTags(query: TagQuery) {
             },
           }
         : {}),
-    } as never,
+    },
     select: {
       id: true,
       name: true,
@@ -78,7 +78,7 @@ async function getPopularTags(input: { discipline?: string; limit: number }) {
             }
           : {}),
       },
-    } as never,
+    },
     _count: {
       tagId: true,
     },

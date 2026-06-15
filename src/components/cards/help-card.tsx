@@ -3,9 +3,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { postTypeAccents } from "@/components/ui-system/tokens";
-import { cn } from "@/lib/utils";
 
 type HelpCardProps = {
   title: string;
@@ -17,42 +15,39 @@ type HelpCardProps = {
 
 export function HelpCard({ title, software, solved, answerCount, href }: HelpCardProps) {
   return (
-    <Card
-      className={cn(
-        "border-border/80 bg-card/90 rounded-xl shadow-sm transition hover:-translate-y-0.5 hover:shadow-md",
-        postTypeAccents.help,
-      )}
-    >
-      <CardHeader className="gap-3">
+    <div className="atelier-post-card flex flex-col" style={{ ["--post-accent" as string]: postTypeAccents.help }}>
+      <div className="flex flex-1 flex-col gap-4 p-5">
         <div className="flex items-center gap-2">
-          <Badge className="bg-sky-500/15 text-sky-700 dark:text-sky-300">Help</Badge>
+          <Badge className="atelier-type-badge border-0 bg-transparent px-0 py-0 shadow-none">Help</Badge>
           {solved ? (
-            <Badge variant="secondary" className="inline-flex items-center gap-1">
+            <Badge className="atelier-status-badge border-0 shadow-none">
               <CheckCircle2 className="size-3.5" /> Solved
             </Badge>
           ) : null}
         </div>
-        <CardTitle className="text-lg leading-tight">
+        <h3 className="text-xl font-semibold leading-tight text-foreground">
           {href ? (
-            <Link href={href} className="hover:text-primary transition-colors">
+            <Link href={href} className="transition-colors hover:text-[oklch(0.92_0.03_82)]">
               {title}
             </Link>
           ) : (
             title
           )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className="text-muted-foreground text-sm">Software: {software}</p>
-      </CardContent>
-      <CardFooter className="flex items-center justify-between">
-        <span className="text-muted-foreground inline-flex items-center gap-1 text-sm">
+        </h3>
+        <p className="text-sm text-muted-foreground">Software: {software}</p>
+      </div>
+      <div className="flex items-center justify-between border-t border-white/8 px-5 py-4">
+        <span className="inline-flex items-center gap-1.5 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-muted-foreground">
           <LifeBuoy className="size-4" /> {answerCount} answers
         </span>
-        <Button size="sm" variant="outline">
+        <Button
+          size="sm"
+          variant="outline"
+          className="rounded-full border-[oklch(0.65_0.15_230_/_0.28)] bg-transparent font-mono text-[0.68rem] uppercase tracking-[0.14em] text-[oklch(0.76_0.08_235)] hover:bg-[oklch(0.65_0.15_230_/_0.1)] hover:text-foreground"
+        >
           Help Solve
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

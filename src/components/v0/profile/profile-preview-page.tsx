@@ -57,9 +57,10 @@ export function ProfilePreviewPage() {
   return (
     <div className="v0-preview-theme v0-surface v0-surface--profile min-h-screen bg-background text-foreground">
       <div className="noise-overlay" aria-hidden="true" />
+      <div className="dashboard-grid-overlay" aria-hidden="true" />
       <ProfileNav />
-      <main className="pb-20 pt-12">
-        <div className="mx-auto grid max-w-7xl grid-cols-12 gap-6 px-6 lg:gap-8">
+      <main className="relative z-10 pb-20 pt-12">
+        <div className="mx-auto grid max-w-[92rem] grid-cols-12 gap-6 px-6 lg:gap-8">
           <div className="col-span-12 md:col-span-5 lg:col-span-3">
             <div className="panel-primary sticky top-20 p-6">
               <div className="mb-6 flex flex-col items-center">

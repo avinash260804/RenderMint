@@ -57,7 +57,6 @@ async function performDatabaseSearch(query: SearchQuery): Promise<SearchPayload>
 
   const posts = await prisma.post.findMany({
     where: {
-      deletedAt: null,
       ...(query.discipline ? { discipline: { slug: query.discipline } } : {}),
       ...(query.software
         ? {
@@ -73,7 +72,7 @@ async function performDatabaseSearch(query: SearchQuery): Promise<SearchPayload>
       ...(query.solved === "true" ? { postType: "help", isSolved: true } : {}),
       ...(query.solved === "false" ? { OR: [{ postType: { not: "help" } }, { isSolved: false }] } : {}),
       ...(textFilters.length > 0 ? { OR: textFilters } : {}),
-    } as never,
+    },
     include: {
       discipline: {
         select: {

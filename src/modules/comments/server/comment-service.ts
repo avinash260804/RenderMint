@@ -29,8 +29,7 @@ export async function listCommentsByPostSlug(postSlug: string) {
     const post = await prisma.post.findFirst({
       where: {
         slug: postSlug,
-        deletedAt: null,
-      } as never,
+      },
       select: { id: true },
     });
 
@@ -41,8 +40,7 @@ export async function listCommentsByPostSlug(postSlug: string) {
     const comments = await prisma.comment.findMany({
       where: {
         postId: post.id,
-        deletedAt: null,
-      } as never,
+      },
       include: {
         author: {
           select: {
@@ -63,8 +61,7 @@ export async function createComment(input: CommentCreateInput & { authorId: stri
   const post = await prisma.post.findFirst({
     where: {
       slug: input.postSlug,
-      deletedAt: null,
-    } as never,
+    },
     select: { id: true },
   });
 
@@ -105,8 +102,7 @@ export async function updateComment(commentId: string, authorId: string, input: 
   const existing = await prisma.comment.findFirst({
     where: {
       id: commentId,
-      deletedAt: null,
-    } as never,
+    },
     include: {
       post: {
         select: {
@@ -152,8 +148,7 @@ export async function deleteComment(commentId: string, authorId: string) {
   const existing = await prisma.comment.findFirst({
     where: {
       id: commentId,
-      deletedAt: null,
-    } as never,
+    },
     select: {
       id: true,
       authorId: true,

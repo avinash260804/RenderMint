@@ -1,12 +1,17 @@
-export function sanitizeText(input: string) {
-  return input.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "").replace(/<[^>]*>/g, "").trim();
+import DOMPurify from "isomorphic-dompurify";
+
+export function sanitizeText(input: string): string {
+  return DOMPurify.sanitize(input, { ALLOWED_TAGS: [] }).trim();
 }
 
-export function sanitizeHtml(input: string) {
-  return sanitizeText(input);
+export function sanitizeHtml(input: string): string {
+  return DOMPurify.sanitize(input, {
+    ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "br", "ul", "ol", "li", "code", "pre"],
+    ALLOWED_ATTR: ["href", "target", "rel"],
+  }).trim();
 }
 
-export function sanitizeUrl(input: string) {
+export function sanitizeUrl(input: string): string | null {
   const value = input.trim();
 
   if (!value) return null;

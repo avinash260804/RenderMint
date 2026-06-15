@@ -61,35 +61,35 @@ const DISCUSSIONS = [
     id: 1,
     topic: "Does structural honesty still matter in contemporary architecture?",
     participants: 47,
-    lastComment: "Rafael A. — &ldquo;The skin-and-structure split is a conceptual problem first.&rdquo;",
+    lastComment: 'Rafael A. - "The skin-and-structure split is a conceptual problem first."',
     heat: "live",
   },
   {
     id: 2,
     topic: "When does ornamentation become pastiche?",
     participants: 31,
-    lastComment: "Priya M. — &ldquo;Context and intent are inseparable here.&rdquo;",
+    lastComment: 'Priya M. - "Context and intent are inseparable here."',
     heat: "warm",
   },
   {
     id: 3,
     topic: "Parametric tools: empowerment or crutch?",
     participants: 22,
-    lastComment: "Soren L. — &ldquo;Depends entirely on what you're optimizing for.&rdquo;",
+    lastComment: `Soren L. - "Depends entirely on what you're optimizing for."`,
     heat: "warm",
   },
   {
     id: 4,
     topic: "How do we talk about ethics in urban density proposals?",
     participants: 14,
-    lastComment: "Yasmin T. — &ldquo;We rarely name who bears the cost.&rdquo;",
+    lastComment: 'Yasmin T. - "We rarely name who bears the cost."',
     heat: "cold",
   },
   {
     id: 5,
     topic: "Section drawing as narrative vs. technical output",
     participants: 9,
-    lastComment: "Karan S. — &ldquo;The best sections tell two stories at once.&rdquo;",
+    lastComment: 'Karan S. - "The best sections tell two stories at once."',
     heat: "cold",
   },
 ]
@@ -283,10 +283,9 @@ export function StudioFloor() {
                     <p className="text-[12px] font-medium text-foreground group-hover:text-foreground/90 leading-snug text-pretty">
                       {d.topic}
                     </p>
-                    <p
-                      className="text-[10px] font-mono text-muted-foreground truncate"
-                      dangerouslySetInnerHTML={{ __html: d.lastComment }}
-                    />
+                    <p className="text-[10px] font-mono text-muted-foreground truncate">
+                      {d.lastComment}
+                    </p>
                   </div>
 
                   {/* Participant count */}

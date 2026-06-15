@@ -100,11 +100,12 @@ export function HeroSection({ disciplines, stats }: HeroSectionProps) {
       <div
         className="hero-grid-motion absolute inset-0 pointer-events-none z-0"
         style={{
-          left: "35%",
-          right: "-8%",
-          top: "-12%",
-          bottom: "-12%",
-          transform: "skewX(-5deg)",
+          left: "48%",
+          right: "-12%",
+          top: "-14%",
+          bottom: "-14%",
+          opacity: 0.92,
+          transform: "skewX(-4deg)",
           transformOrigin: "top left",
         }}
       >
@@ -114,15 +115,16 @@ export function HeroSection({ disciplines, stats }: HeroSectionProps) {
       <div
         className="hero-grid-fade absolute inset-y-0 pointer-events-none z-10"
         style={{
-          left: "30%",
-          width: "28%",
-          background: "linear-gradient(to right, oklch(0.08 0 0) 0%, oklch(0.08 0 0) 25%, transparent 100%)",
+          left: "36%",
+          width: "30%",
+          background:
+            "linear-gradient(to right, oklch(0.03 0 0 / 1) 0%, oklch(0.03 0 0 / 0.96) 18%, oklch(0.03 0 0 / 0.7) 46%, transparent 100%)",
         }}
       />
 
       <div
         ref={contentRef}
-        className="hero-content relative z-20 flex h-full max-w-full flex-col justify-between px-6 sm:px-8 md:max-w-[65%] md:px-12 lg:max-w-[52%] lg:px-20"
+        className="hero-content relative z-20 flex h-full max-w-full flex-col justify-between px-6 sm:px-8 md:max-w-[65%] md:px-12 lg:max-w-[44%] lg:px-16 xl:max-w-[40%] xl:px-20"
       >
         <div className="hero-content-copy flex min-h-0 flex-1 flex-col justify-center gap-0">
           <div ref={eyebrowRef} className="mb-7 flex items-center gap-2.5">

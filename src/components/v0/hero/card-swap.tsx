@@ -242,7 +242,7 @@ export default function CardSwap({
         position: "absolute",
         bottom: 0,
         right: 0,
-        transform: "translate(5%, 20%)",
+        transform: "translate(0%, 6%)",
         transformOrigin: "bottom right",
         perspective: "900px",
         overflow: "visible",

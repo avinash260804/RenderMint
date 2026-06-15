@@ -15,15 +15,7 @@ export function DashboardPreviewPage() {
     >
       <div className="noise-overlay" aria-hidden="true" />
       <StudioHeader />
-      <div
-        className="fixed inset-0 pointer-events-none z-0 opacity-25"
-        aria-hidden="true"
-        style={{
-          backgroundImage:
-            "linear-gradient(to right, oklch(0.20 0 0) 1px, transparent 1px), linear-gradient(to bottom, oklch(0.20 0 0) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
+      <div className="dashboard-grid-overlay" aria-hidden="true" />
       <div className="relative z-10 pt-[60px]">
         <div className="flex min-h-[calc(100vh-60px)]">
           <div className="flex-1 min-w-0 flex flex-col">

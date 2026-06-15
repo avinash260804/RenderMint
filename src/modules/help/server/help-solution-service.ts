@@ -25,9 +25,8 @@ export async function getHelpSolutionState(
     const post = await prisma.post.findFirst({
       where: {
         slug: postSlug,
-        deletedAt: null,
         postType: "help",
-      } as never,
+      },
       select: {
         slug: true,
         authorId: true,
@@ -79,9 +78,8 @@ export async function setHelpSolution(postSlug: string, commentId: string | null
     const post = await prisma.post.findFirst({
       where: {
         slug: postSlug,
-        deletedAt: null,
         postType: "help",
-      } as never,
+      },
       select: {
         id: true,
         slug: true,
@@ -100,7 +98,7 @@ export async function setHelpSolution(postSlug: string, commentId: string | null
               id: commentId,
               postId: post.id,
               deletedAt: null,
-            } as never,
+            },
             select: { id: true },
           })
         : null;

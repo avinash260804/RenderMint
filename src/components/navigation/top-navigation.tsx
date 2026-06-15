@@ -14,17 +14,22 @@ export function TopNavigation({
   searchPlaceholder = "Search discussions, critique, help...",
 }: TopNavigationProps) {
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <p className="text-muted-foreground text-xs uppercase tracking-[0.12em]">{label}</p>
-        <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
-      </div>
-      <div className="relative w-full sm:max-w-sm">
-        <Search className="text-muted-foreground pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2" />
-        <Input
-          placeholder={searchPlaceholder}
-          className="border-border/80 bg-card rounded-xl pl-9"
-        />
+    <div className="atelier-toolbar relative mb-6 overflow-hidden px-5 py-4 sm:px-6">
+      <div className="atelier-community-grid" aria-hidden="true" />
+      <div className="relative z-10 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-[oklch(0.72_0.08_55)]">
+            {label}
+          </p>
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
+        </div>
+        <div className="relative w-full sm:max-w-md">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder={searchPlaceholder}
+            className="atelier-search-input w-full rounded-2xl pl-9"
+          />
+        </div>
       </div>
     </div>
   );

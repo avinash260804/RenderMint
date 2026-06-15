@@ -12,19 +12,17 @@ export async function recalculateReputation(userId: string) {
     prisma.comment.count({
       where: {
         authorId: userId,
-        deletedAt: null,
         isSolution: true,
-      } as never,
+      },
     }),
     prisma.comment.count({
       where: {
         authorId: userId,
-        deletedAt: null,
         post: {
           postType: "critique",
           deletedAt: null,
         },
-      } as never,
+      },
     }),
     prisma.vote.count({
       where: {
@@ -34,7 +32,7 @@ export async function recalculateReputation(userId: string) {
           authorId: userId,
           deletedAt: null,
         },
-      } as never,
+      },
     }),
     prisma.vote.count({
       where: {
@@ -44,24 +42,22 @@ export async function recalculateReputation(userId: string) {
           authorId: userId,
           deletedAt: null,
         },
-      } as never,
+      },
     }),
     prisma.post.count({
       where: {
         authorId: userId,
-        deletedAt: null,
         postType: "discussion",
-      } as never,
+      },
     }),
     prisma.comment.count({
       where: {
         authorId: userId,
-        deletedAt: null,
         post: {
           postType: "discussion",
           deletedAt: null,
         },
-      } as never,
+      },
     }),
   ]);
 

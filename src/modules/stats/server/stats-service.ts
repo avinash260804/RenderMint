@@ -23,7 +23,7 @@ export async function getPlatformStats(): Promise<PlatformStats> {
   try {
     const [members, posts, disciplines, groupedPosts] = await Promise.all([
       prisma.profile.count(),
-      prisma.post.count({ where: { deletedAt: null } as never }),
+      prisma.post.count({ where: {} }),
       prisma.discipline.findMany({
         orderBy: { name: "asc" },
         select: {
@@ -34,7 +34,7 @@ export async function getPlatformStats(): Promise<PlatformStats> {
       }),
       prisma.post.groupBy({
         by: ["disciplineId"],
-        where: { deletedAt: null } as never,
+        where: {},
         _count: {
           _all: true,
         },

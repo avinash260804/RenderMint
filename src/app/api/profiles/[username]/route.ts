@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { prisma } from "@/server/db/client";
-import { getPublicProfile } from "@/modules/profiles/profile-service";
+import { NotFoundError } from "@/lib/errors";
+import { getProfileByUsername } from "@/modules/profiles/server/profile-service";
 
 export const dynamic = "force-dynamic";
 
@@ -11,9 +11,16 @@ type RouteProps = {
 
 export async function GET(_: Request, { params }: RouteProps) {
   const { username } = await params;
-  const profile = await getPublicProfile(prisma, username);
-  if (!profile) return jsonError("Profile not found", 404);
-  return NextResponse.json({ data: profile });
+  try {
+    const profile = await getProfileByUsername(username.trim().toLowerCase());
+    return NextResponse.json({ data: profile });
+  } catch (error) {
+    if (error instanceof NotFoundError) {
+      return jsonError("Profile not found", 404);
+    }
+
+    return jsonError(error instanceof Error ? error.message : "Internal Server Error", 500);
+  }
 }
 
 export async function PATCH(request: Request, { params }: RouteProps) {

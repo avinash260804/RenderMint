@@ -138,7 +138,7 @@ export async function createPost(authorId: string, input: PostCreationValidated)
 
 export async function getPostBySlug(slug: string) {
   const existing = await prisma.post.findFirst({
-    where: { slug, deletedAt: null } as never,
+    where: { slug },
     include: POST_FULL_INCLUDE,
   });
 
@@ -164,7 +164,6 @@ export async function listPosts(filters: PostListQueryInput) {
 
   const posts = await prisma.post.findMany({
     where: {
-      deletedAt: null,
       ...(filters.discipline ? { discipline: { slug: filters.discipline } } : {}),
       ...(filters.postType ? { postType: filters.postType } : {}),
       ...(filters.software
@@ -188,7 +187,7 @@ export async function listPosts(filters: PostListQueryInput) {
             ],
           }
         : {}),
-    } as never,
+    },
     select: POST_CARD_SELECT,
     orderBy:
       filters.sortBy === "top"
@@ -221,8 +220,7 @@ export async function updatePost(postId: string, authorId: string, input: PostUp
   const existing = await prisma.post.findFirst({
     where: {
       id: postId,
-      deletedAt: null,
-    } as never,
+    },
     include: POST_FULL_INCLUDE,
   });
 
@@ -286,7 +284,7 @@ export async function updatePost(postId: string, authorId: string, input: PostUp
             : Prisma.JsonNull,
       editedAt: new Date(),
       updatedAt: new Date(),
-    } as never,
+    },
     include: POST_FULL_INCLUDE,
   });
 
@@ -308,7 +306,7 @@ export async function updatePost(postId: string, authorId: string, input: PostUp
 
 export async function deletePost(postId: string, authorId: string) {
   const existing = await prisma.post.findFirst({
-    where: { id: postId, deletedAt: null } as never,
+    where: { id: postId },
     select: {
       id: true,
       authorId: true,
@@ -334,7 +332,7 @@ export async function deletePost(postId: string, authorId: string) {
     data: {
       deletedAt: new Date(),
       updatedAt: new Date(),
-    } as never,
+    },
   });
 }
 

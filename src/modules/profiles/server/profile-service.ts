@@ -135,21 +135,18 @@ export async function getProfileStats(userId: string) {
     prisma.post.count({
       where: {
         authorId: userId,
-        deletedAt: null,
-      } as never,
+      },
     }),
     prisma.comment.count({
       where: {
         authorId: userId,
-        deletedAt: null,
-      } as never,
+      },
     }),
     prisma.comment.count({
       where: {
         authorId: userId,
-        deletedAt: null,
         isSolution: true,
-      } as never,
+      },
     }),
   ]);
 
@@ -164,8 +161,7 @@ export async function getProfilePosts(userId: string) {
   const posts = await prisma.post.findMany({
     where: {
       authorId: userId,
-      deletedAt: null,
-    } as never,
+    },
     include: {
       author: {
         select: {

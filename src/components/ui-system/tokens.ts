@@ -15,13 +15,13 @@ export const typographyTokens = {
   h2: "text-2xl font-semibold tracking-tight sm:text-3xl",
   h3: "text-xl font-semibold tracking-tight",
   body: "text-sm leading-6 text-muted-foreground sm:text-base",
-  label: "text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground",
+  label: "font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground",
 } as const;
 
 export const postTypeAccents = {
-  discussion: "border-l-4 border-l-zinc-400",
-  critique: "border-l-4 border-l-amber-500",
-  showcase: "border-l-4 border-l-emerald-500",
-  help: "border-l-4 border-l-sky-500",
-  resource: "border-l-4 border-l-violet-500",
+  discussion: "oklch(0.65 0.12 80)",
+  critique: "oklch(0.7 0.2 45)",
+  showcase: "oklch(0.65 0.18 150)",
+  help: "oklch(0.65 0.15 230)",
+  resource: "oklch(0.65 0.15 270)",
 } as const;

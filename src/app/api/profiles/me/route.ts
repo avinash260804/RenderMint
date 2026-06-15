@@ -4,8 +4,7 @@ import { AuthError } from "@/lib/errors";
 import { requireAuth } from "@/lib/auth/require-auth";
 import { profileUpdateSchema } from "@/modules/profiles/schemas/profile-schema";
 import { getProfileById as getServerProfileById } from "@/modules/profiles/server/profile-service";
-import { prisma } from "@/server/db/client";
-import { updateProfile } from "@/modules/profiles/profile-service";
+import { updateProfile } from "@/modules/profiles/server/profile-service";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +28,7 @@ export async function PATCH(request: Request) {
       return jsonError(parsed.error.issues.map((issue) => issue.message).join(" "), 400);
     }
 
-    const profile = await updateProfile(prisma, userId, parsed.data);
+    const profile = await updateProfile(userId, parsed.data);
     return NextResponse.json({ data: profile });
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Internal Server Error", statusOf(error));

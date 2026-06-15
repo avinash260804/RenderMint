@@ -23,7 +23,7 @@ export async function getHomeFeed() {
 
   try {
     const posts = await prisma.post.findMany({
-      where: { deletedAt: null } as never,
+      where: {},
       include: {
         author: {
           select: {
@@ -154,9 +154,8 @@ export async function getDisciplineFeed(
     const posts = await prisma.post.findMany({
       where: {
         discipline: { slug },
-        deletedAt: null,
         ...(postType ? { postType } : {}),
-      } as never,
+      },
       include: {
         author: {
           select: {
@@ -255,9 +254,7 @@ export async function getThreadStaticSlugs() {
 
   try {
     const posts = await prisma.post.findMany({
-      where: {
-        deletedAt: null,
-      } as never,
+      where: {},
       select: {
         slug: true,
       },

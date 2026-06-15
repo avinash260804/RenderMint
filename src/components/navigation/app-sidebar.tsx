@@ -31,24 +31,26 @@ export function AppSidebar({ className }: { className?: string }) {
   return (
     <aside
       className={cn(
-        "border-sidebar-border bg-sidebar text-sidebar-foreground rounded-2xl border p-4 shadow-sm",
+        "atelier-panel atelier-panel-muted sticky top-24 overflow-hidden p-4 text-sidebar-foreground",
         className,
       )}
     >
-      <p className="text-muted-foreground px-2 pb-3 text-xs font-medium uppercase tracking-[0.14em]">
+      <div className="atelier-community-grid" aria-hidden="true" />
+      <p className="relative z-10 px-2 pb-3 font-mono text-[0.68rem] uppercase tracking-[0.18em] text-muted-foreground">
         Navigation
       </p>
-      <nav className="space-y-1.5">
+      <nav className="relative z-10 space-y-1.5">
         {navItems.map((item) => (
           <Link
             key={item.name}
             href={item.href}
             className={cn(
-              "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group flex items-center gap-2 rounded-xl px-3 py-2 text-sm transition-colors",
-              pathname === item.href && "bg-sidebar-accent text-sidebar-accent-foreground",
+              "group flex items-center gap-3 rounded-xl border border-transparent px-3 py-2.5 font-mono text-[0.72rem] uppercase tracking-[0.14em] text-muted-foreground transition-all hover:border-white/8 hover:bg-white/[0.03] hover:text-foreground",
+              pathname === item.href &&
+                "border-[oklch(0.7_0.2_45_/_0.28)] bg-[oklch(0.7_0.2_45_/_0.1)] text-foreground",
             )}
           >
-            <item.icon className="text-muted-foreground size-4 group-hover:text-current" />
+            <item.icon className="size-4 text-muted-foreground transition-colors group-hover:text-current" />
             <span>{item.name}</span>
           </Link>
         ))}

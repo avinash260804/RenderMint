@@ -82,8 +82,7 @@ async function voteOnPost(authorId: string, postId: string, voteType: VoteTypeIn
   const post = await prisma.post.findFirst({
     where: {
       id: postId,
-      deletedAt: null,
-    } as never,
+    },
     select: {
       id: true,
       authorId: true,
@@ -154,11 +153,10 @@ async function voteOnComment(authorId: string, commentId: string, voteType: Vote
   const comment = await prisma.comment.findFirst({
     where: {
       id: commentId,
-      deletedAt: null,
       post: {
         deletedAt: null,
       },
-    } as never,
+    },
     select: {
       id: true,
       authorId: true,

@@ -27,7 +27,7 @@ export function PostGrid({ posts, emptyTitle, emptyDescription }: PostGridProps)
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+    <div className="grid gap-5 md:grid-cols-2 2xl:grid-cols-3">
       {posts.map((post) => {
         const wrapper = (children: ReactNode) => (
           <article
