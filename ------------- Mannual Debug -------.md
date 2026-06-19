@@ -2,25 +2,20 @@
 
 ###### 
 
-###### **Hero page:**
-
-* Theme, BG
-* Formatting and alignment
-* Reconfiguration of buttons
-
-
-
 ###### 
 
-###### **Login:**
+**Posting stuff not working - unauthorised
+Button configuration to proper webpages
+menu redirection wiring
+left panel UI change top header also
+all spaces inside every space as menu stupid af
+showcase better
+adopt different viewing templates for each space but subtle as a forum
+Rework on color too dark and textures/ format is fine
+Logo**
 
+**Discord**
 
-
-* Password requirement
-* Wire google auth
-* what is magic link functionalise it
-* BG theme not applied
-* Profile and dashboard needs to be seen
-
-
+**Integration Unit
+work on labels and representation of posts**
 
