@@ -132,7 +132,7 @@ The live code supports a multidisciplinary design community centered on:
 - `src/`: application source
 - `supabase/`: SQL migration for RLS policies
 - `Tests/`: root test scripts and audit-era test files
-- `V3 logs/`: sprint-by-sprint V3 implementation logs
+- `docs/sprint-logs/`: sprint-by-sprint V3 implementation logs
 - `.tmp/`: local mock upload storage and temp files
 
 ### Source structure
@@ -669,27 +669,27 @@ No moderation, admin, banning, content review queue, or admin route implementati
 ## Documentation Inventory
 ### Product and build docs present
 - `AGENTS.md`
-- `design_system.md`
-- `IMPLEMENTATION_PLAN_V2.md`
-- `ITERATION_BUILD_LOG_TEMPLATE.md`
-- `PRODUCTION_BUILD_VERIFICATION.md`
-- `PRODUCTION_QUALITY_TEST_AUDIT_LOG.md`
-- `PROJECT_MASTER_LOG.md`
-- `REQUIREMENTS.md`
-- `SPRINT_10_VERIFICATION.md`
-- `TEST_EXECUTION_LOG.md`
+- `docs/architecture/design_system.md`
+- `docs/plans/IMPLEMENTATION_PLAN_V2.md`
+- `docs/plans/ITERATION_BUILD_LOG_TEMPLATE.md`
+- `docs/sprint-logs/PRODUCTION_BUILD_VERIFICATION.md`
+- `docs/sprint-logs/PRODUCTION_QUALITY_TEST_AUDIT_LOG.md`
+- `docs/sprint-logs/PROJECT_MASTER_LOG.md`
+- `docs/architecture/REQUIREMENTS.md`
+- `docs/sprint-logs/SPRINT_10_VERIFICATION.md`
+- `docs/sprint-logs/TEST_EXECUTION_LOG.md`
 
 ### Iteration logs present
-- `V3 logs/V3_SPRINT_0_LOG.md`
-- `V3 logs/V3_SPRINT_1_LOG.md`
-- `V3 logs/V3_SPRINT_2_LOG.md`
-- `V3 logs/V3_SPRINT_3_LOG.md`
-- `V3 logs/V3_SPRINT_4_LOG.md`
-- `V3 logs/V3_SPRINT_5_LOG.md`
-- `V3 logs/V3_SPRINT_6_LOG.md`
-- `V3 logs/V3_SPRINT_7_LOG.md`
-- `V3 logs/V3_SPRINT_8_LOG.md`
-- `V3 logs/V3_SPRINT_9_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_0_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_1_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_2_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_3_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_4_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_5_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_6_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_7_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_8_LOG.md`
+- `docs/sprint-logs/V3_SPRINT_9_LOG.md`
 
 ## Current Missing Or Partial Areas
 ### Partial implementations
@@ -740,3 +740,4 @@ Repository-discoverable TODO-style markers were limited. Notable findings:
 - realtime collaboration
 - follower/social systems
 - marketplace or jobs systems
+

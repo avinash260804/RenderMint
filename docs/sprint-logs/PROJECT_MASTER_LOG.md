@@ -22,7 +22,7 @@ This document is deliberately detailed so it can function as a handoff log, arch
 The information in this file comes from four sources:
 
 1. The product specification in [AGENTS.md](</C:/Users/aviro/OneDrive/Documents/New%20project/AGENTS.md>)
-2. The UI and experience specification in [design_system.md](</C:/Users/aviro/OneDrive/Documents/New%20project/design_system.md>)
+2. The UI and experience specification in [design_system.md](</C:/Users/aviro/OneDrive/Documents/New%20project/docs/architecture/design_system.md>)
 3. The code currently present in this repository
 4. The build, run, and Git operations performed in the working session that led to the current state
 
@@ -89,7 +89,7 @@ This section captures the full known sequence of work requests and the resulting
 The repository work began from planning-oriented requests:
 
 - read `AGENTS.md`
-- read `design_system.md`
+- read `docs/architecture/design_system.md`
 - analyze repository architecture
 - produce repository planning and dependency mapping
 
@@ -1025,7 +1025,7 @@ Current top-level repository files:
 - `AGENTS.md`
 - `README.md`
 - `components.json`
-- `design_system.md`
+- `docs/architecture/design_system.md`
 - `middleware.ts`
 - `next.config.mjs`
 - `package-lock.json`
@@ -1228,3 +1228,6 @@ The codebase is architected as a single Next.js full-stack application with:
 - a premium creative UI direction
 
 The repository is deployable in structure, builds successfully when the environment is configured correctly, and has been pushed to GitHub. Its next major maturity step would be converting the remaining mock and in-memory feature layers into fully persistent production flows while preserving the current route, UI, and schema architecture.
+
+
+

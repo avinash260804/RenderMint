@@ -16,9 +16,9 @@ and bring `prisma migrate status` back to a clean state before any V3 UI wiring 
 
 - `AGENTS.md`
 - `C:\Users\aviro\Downloads\IMPLEMENTATION_PLAN_V3.md`
-- `ITERATION_BUILD_LOG_TEMPLATE.md`
-- `PRODUCTION_BUILD_VERIFICATION.md`
-- `PRODUCTION_QUALITY_TEST_AUDIT_LOG.md`
+- `docs/plans/ITERATION_BUILD_LOG_TEMPLATE.md`
+- `docs/sprint-logs/PRODUCTION_BUILD_VERIFICATION.md`
+- `docs/sprint-logs/PRODUCTION_QUALITY_TEST_AUDIT_LOG.md`
 - `C:\Users\aviro\Downloads\atelier-design-template.md`
 
 Note:

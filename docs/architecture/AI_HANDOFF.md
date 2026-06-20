@@ -336,11 +336,11 @@ Examples:
 ### Validate against existing logs and docs
 Useful repository-grounded context lives in:
 - `AGENTS.md`
-- `design_system.md`
-- `REQUIREMENTS.md`
-- `PROJECT_MASTER_LOG.md`
-- `PRODUCTION_QUALITY_TEST_AUDIT_LOG.md`
-- `V3 logs/*`
+- `docs/architecture/design_system.md`
+- `docs/architecture/REQUIREMENTS.md`
+- `docs/sprint-logs/PROJECT_MASTER_LOG.md`
+- `docs/sprint-logs/PRODUCTION_QUALITY_TEST_AUDIT_LOG.md`
+- `docs/sprint-logs/*`
 
 ### Be careful with tests
 The repository has mixed test locations and older test assumptions.
@@ -359,3 +359,8 @@ Observed live constraints include:
 - help solved flow only on help posts
 - thread pages are SSR-driven
 - posts and comments use soft-delete-aware querying
+
+
+
+
+

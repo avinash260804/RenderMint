@@ -16,7 +16,7 @@ This plan is intended to be:
 
 ## Planning Principles
 
-This plan follows the existing product contract in [AGENTS.md](</C:/Users/aviro/OneDrive/Documents/New%20project/AGENTS.md>) and the current implementation audit in [PROJECT_MASTER_LOG.md](</C:/Users/aviro/OneDrive/Documents/New%20project/PROJECT_MASTER_LOG.md>).
+This plan follows the existing product contract in [AGENTS.md](</C:/Users/aviro/OneDrive/Documents/New%20project/AGENTS.md>) and the current implementation audit in [PROJECT_MASTER_LOG.md](</C:/Users/aviro/OneDrive/Documents/New%20project/docs/sprint-logs/PROJECT_MASTER_LOG.md>).
 
 The core principles are:
 
@@ -745,3 +745,4 @@ The uploaded plan had the right long-term instincts:
 - search abstraction
 
 This V2 plan keeps those strengths, but restructures them around the actual repository so the team can move forward without unnecessary rewrites or architecture drift.
+

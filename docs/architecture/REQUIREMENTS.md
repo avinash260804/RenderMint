@@ -19,7 +19,7 @@ It reflects the codebase as it exists now, not the idealized target architecture
 
 ## Current Implementation Status
 
-Completed in repository V3 logs:
+Completed in `docs/sprint-logs`:
 
 1. Sprint 0: schema drift fix and migration sync
 2. Sprint 1: v0 import prep and preview audit
@@ -317,3 +317,4 @@ These are not required to run the current repository locally:
 - [`src/lib/env.ts`](C:\Users\aviro\OneDrive\Documents\New project\src\lib\env.ts)
 - [`playwright.config.ts`](C:\Users\aviro\OneDrive\Documents\New project\playwright.config.ts)
 - [`AGENTS.md`](C:\Users\aviro\OneDrive\Documents\New project\AGENTS.md)
+

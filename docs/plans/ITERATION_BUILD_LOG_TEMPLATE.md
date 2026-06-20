@@ -18,9 +18,9 @@ This is not a product brief. It is an implementation record.
 
 - Project: `Designers Hub`
 - Workspace: `C:\Users\aviro\OneDrive\Documents\New project`
-- Primary plan: [IMPLEMENTATION_PLAN_V2.md](</C:/Users/aviro/OneDrive/Documents/New%20project/IMPLEMENTATION_PLAN_V2.md>)
+- Primary plan: [IMPLEMENTATION_PLAN_V2.md](</C:/Users/aviro/OneDrive/Documents/New%20project/docs/plans/IMPLEMENTATION_PLAN_V2.md>)
 - Product contract: [AGENTS.md](</C:/Users/aviro/OneDrive/Documents/New%20project/AGENTS.md>)
-- Architecture log: [PROJECT_MASTER_LOG.md](</C:/Users/aviro/OneDrive/Documents/New%20project/PROJECT_MASTER_LOG.md>)
+- Architecture log: [PROJECT_MASTER_LOG.md](</C:/Users/aviro/OneDrive/Documents/New%20project/docs/sprint-logs/PROJECT_MASTER_LOG.md>)
 
 ---
 
@@ -132,7 +132,7 @@ Choose one:
 
 ### Next Recommended Sprint
 
-State the next sprint from [IMPLEMENTATION_PLAN_V2.md](</C:/Users/aviro/OneDrive/Documents/New%20project/IMPLEMENTATION_PLAN_V2.md>).
+State the next sprint from [IMPLEMENTATION_PLAN_V2.md](</C:/Users/aviro/OneDrive/Documents/New%20project/docs/plans/IMPLEMENTATION_PLAN_V2.md>).
 
 ---
 
@@ -880,7 +880,7 @@ Scope:
 
 Files Added:
 
-- `SPRINT_10_VERIFICATION.md`
+- `docs/sprint-logs/SPRINT_10_VERIFICATION.md`
 
 Files Modified:
 
@@ -906,7 +906,7 @@ Architecture Notes:
 - seed writes realistic relationships across profiles, profile software selections, tags, post tags, comments, attachments, votes, and accepted answer state
 - post/comment vote counters and profile reputation are recalculated after seed writes so persisted read models are coherent
 - seed connection prefers `SEED_DATABASE_URL`, then `DATABASE_URL`, then `DIRECT_URL`; Supabase pooler URLs are normalized with low connection usage
-- verification gates are documented in `SPRINT_10_VERIFICATION.md`
+- verification gates are documented in `docs/sprint-logs/SPRINT_10_VERIFICATION.md`
 
 Verification Run:
 
@@ -985,3 +985,5 @@ Use this after the full iteration completes.
 ### Recommended Next Major Phase
 
 State the next implementation phase after this iteration.
+
+
