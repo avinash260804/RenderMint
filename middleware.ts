@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 
 import { env } from "@/lib/env";
 
-const protectedPrefixes = ["/dashboard", "/onboarding", "/settings"];
+const protectedPrefixes = ["/dashboard", "/onboarding", "/settings", "/post/new", "/profile/me"];
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next({ request });

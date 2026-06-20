@@ -49,9 +49,64 @@ model Profile {
   comments          Comment[]
   votes             Vote[]
   profileSoftwares  ProfileSoftware[]
+  settings          UserSettings?
 
   @@index([reputation], map: "idx_profiles_reputation")
   @@map("profiles")
+}
+
+model UserSettings {
+  id                       String   @id @default(cuid())
+  userId                   String   @unique @map("user_id") @db.Uuid
+  displayName              String?  @map("display_name") @db.VarChar(80)
+  bio                      String?  @db.VarChar(300)
+  avatarUrl                String?  @map("avatar_url") @db.VarChar(500)
+  coverImageUrl            String?  @map("cover_image_url") @db.VarChar(500)
+  portfolioUrl             String?  @map("portfolio_url") @db.VarChar(500)
+  location                 String?  @db.VarChar(120)
+  locationVisible          Boolean  @default(true) @map("location_visible")
+  socialLinks              Json     @default("{}") @map("social_links")
+  primaryDiscipline        String?  @map("primary_discipline") @db.VarChar(64)
+  secondaryDisciplines     String[] @default([]) @map("secondary_disciplines")
+  experienceLevel          String   @default("student") @map("experience_level") @db.VarChar(32)
+  softwareTools            String[] @default([]) @map("software_tools")
+  skills                   String[] @default([])
+  acceptCritique           Boolean  @default(true) @map("accept_critique")
+  offerMentorship          Boolean  @default(false) @map("offer_mentorship")
+  twoFactorEnabled         Boolean  @default(false) @map("two_factor_enabled")
+  emailNotifications       Boolean  @default(true) @map("email_notifications")
+  inAppNotifications       Boolean  @default(true) @map("in_app_notifications")
+  emailFrequency           String   @default("daily") @map("email_frequency") @db.VarChar(16)
+  commentNotifications     Boolean  @default(true) @map("comment_notifications")
+  newFollowerNotifications Boolean  @default(false) @map("new_follower_notifications")
+  newsAndFeatures          Boolean  @default(true) @map("news_and_features")
+  profileVisibility        String   @default("public") @map("profile_visibility") @db.VarChar(16)
+  onlineStatusVisible      Boolean  @default(true) @map("online_status_visible")
+  activityVisible          Boolean  @default(true) @map("activity_visible")
+  messagePermissions       String   @default("none") @map("message_permissions") @db.VarChar(16)
+  searchVisible            Boolean  @default(true) @map("search_visible")
+  contentTypeFilters       String[] @default([]) @map("content_type_filters")
+  disciplineFilters        String[] @default([]) @map("discipline_filters")
+  sortingPreference        String   @default("recent") @map("sorting_preference") @db.VarChar(32)
+  theme                    String   @default("dark") @db.VarChar(16)
+  compactMode              Boolean  @default(false) @map("compact_mode")
+  fontSize                 String   @default("normal") @map("font_size") @db.VarChar(16)
+  displayCredits           Boolean  @default(true) @map("display_credits")
+  creditsGoal              Int      @default(100) @map("credits_goal")
+  reputationHistoryVisible Boolean  @default(true) @map("reputation_history_visible")
+  reputationGoal           Int      @default(500) @map("reputation_goal")
+  connections              Json     @default("[]")
+  exportFrequency          String   @default("manual") @map("export_frequency") @db.VarChar(16)
+  exportFormat             String   @default("json") @map("export_format") @db.VarChar(16)
+  lastExportDate           DateTime? @map("last_export_date")
+  apiKeys                  Json     @default("[]") @map("api_keys")
+  accountDeletionRequested Boolean  @default(false) @map("account_deletion_requested")
+  accountDeletionDate      DateTime? @map("account_deletion_date")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
+  profile                  Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
 }
 
 model Discipline {

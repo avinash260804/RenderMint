@@ -23,13 +23,14 @@ export function TopNavigation({
           </p>
           <h2 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h2>
         </div>
-        <div className="relative w-full sm:max-w-md">
+        <form action="/search" className="relative w-full sm:max-w-md">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input
+            name="q"
             placeholder={searchPlaceholder}
             className="atelier-search-input w-full rounded-2xl pl-9"
           />
-        </div>
+        </form>
       </div>
     </div>
   );

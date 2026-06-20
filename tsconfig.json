@@ -45,6 +45,7 @@
     "vitest.config.ts",
     "playwright.config.ts",
     "playwright",
-    "e2e"
+    "e2e",
+    "build-settings-page"
   ]
 }

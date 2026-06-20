@@ -224,6 +224,13 @@ export function ProfileEditForm({ profile, disciplines }: ProfileEditFormProps) 
               </button>
               <button
                 type="button"
+                onClick={() => router.push("/settings/profile")}
+                className="w-full border border-[oklch(0.7_0.2_45_/_0.32)] bg-[oklch(0.7_0.2_45_/_0.08)] px-4 py-3 font-mono text-[11px] uppercase tracking-widest text-[oklch(0.82_0.1_58)] transition-colors hover:bg-[oklch(0.7_0.2_45_/_0.14)]"
+              >
+                Open settings
+              </button>
+              <button
+                type="button"
                 onClick={() => router.back()}
                 className="w-full border border-border/50 px-4 py-3 font-mono text-[11px] uppercase tracking-widest text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
               >

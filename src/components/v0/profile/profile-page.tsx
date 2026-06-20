@@ -165,6 +165,7 @@ function createHeatmapRows(
   recentPosts: ProfilePost[],
   contributionBreakdown: ProfilePageProps["contributionBreakdown"],
 ) {
+  const showcasePost = showcasePostsOrRecent(recentPosts);
   const seed = hashString(`${profile.id}:${profile.username}:${profile.createdAt}`);
   const craftBase = contributionBreakdown.showcases + contributionBreakdown.resources + profile.softwares.length;
   const critiqueBase = contributionBreakdown.critiques + profile.stats.acceptedAnswerCount;
@@ -198,8 +199,7 @@ function createHeatmapRows(
     totals,
     totalPoints,
     activityPercentage,
-    latestProjectTitle:
-      showcasePostsOrRecent(recentPosts).title ?? "Design archive in progress",
+    latestProjectTitle: showcasePost?.title ?? "Design archive in progress",
   };
 }
 
@@ -721,13 +721,22 @@ export function AtelierProfilePage({
 
               <div className="mt-5 space-y-3">
                 {isOwner ? (
-                  <Link
-                    href="/profile/me/edit"
-                    className="flex items-center justify-between rounded-xl border border-[oklch(0.7_0.2_45_/_0.32)] bg-[oklch(0.7_0.2_45_/_0.08)] px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[oklch(0.82_0.1_58)] transition-colors hover:bg-[oklch(0.7_0.2_45_/_0.14)]"
-                  >
-                    <span>Edit profile</span>
-                    <ArrowRight size={12} />
-                  </Link>
+                  <>
+                    <Link
+                      href="/profile/me/edit"
+                      className="flex items-center justify-between rounded-xl border border-[oklch(0.7_0.2_45_/_0.32)] bg-[oklch(0.7_0.2_45_/_0.08)] px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-[oklch(0.82_0.1_58)] transition-colors hover:bg-[oklch(0.7_0.2_45_/_0.14)]"
+                    >
+                      <span>Edit profile</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                    <Link
+                      href="/settings/profile"
+                      className="flex items-center justify-between rounded-xl border border-white/10 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-foreground transition-colors hover:bg-white/[0.04]"
+                    >
+                      <span>Open settings</span>
+                      <ArrowRight size={12} />
+                    </Link>
+                  </>
                 ) : null}
                 <Link
                   href="/dashboard"
