@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Atelier
 
-## Getting Started
+Atelier is a creative community platform for designers, students, makers, and creative professionals to discuss ideas, ask for help, share work, receive structured critique, and build a meaningful creative identity.
 
-First, run the development server:
+It is designed as a more intentional alternative to generic forums, scattered comment sections, and surface-level feedback spaces. Atelier focuses on thoughtful participation, discipline-aware discussion, and critique that helps creative work become stronger.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## What Atelier Is
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Atelier is a community-first space built around creative practice.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+It brings together:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Design discussions
+- Structured work critique
+- Help and problem-solving threads
+- Discipline-focused spaces
+- Creative profiles
+- Search and discovery
+- Reputation through meaningful contribution
 
-## Learn More
+The goal is not just to let people post content, but to create a place where creative people can learn from each other, improve their work, and feel part of a serious design-minded community.
 
-To learn more about Next.js, take a look at the following resources:
+## Why Atelier Exists
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Creative beginners often struggle to find specific, useful guidance. Many communities give broad answers, casual comments, or disconnected feedback that does not help the person understand how to improve.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Experienced creatives also need a place to exchange opinions, give critique, showcase thinking, and build recognition through valuable participation.
 
-## Deploy on Vercel
+Atelier exists to connect these needs in one focused platform: a space where questions, critiques, resources, and creative identities can live together with clarity.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Who It Is For
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Atelier is for:
+
+- Design students looking for better guidance
+- Beginner creatives seeking feedback and direction
+- Designers who want thoughtful critique on their work
+- Creative professionals who want to share knowledge
+- Makers, artists, and builders working across visual and digital disciplines
+- People who value structured discussion over low-effort posting
+
+## Core Idea
+
+Atelier treats creative discussion and critique as serious parts of the design process.
+
+A normal comment may say whether something looks good or bad. A proper critique helps explain why something works, what can improve, and how the work can move forward.
+
+The platform is shaped around that difference.
+
+## Platform Experience
+
+Atelier is imagined as a set of connected spaces:
+
+### Community Discussions
+
+A forum-like space for asking questions, sharing thoughts, discussing creative practice, and finding answers from people with similar interests.
+
+### Structured Critique
+
+A focused space where users can share work with context, goals, constraints, and the kind of feedback they are looking for. This makes critique more useful than casual comments.
+
+### Discipline Hubs
+
+Dedicated spaces for different creative fields, making it easier to explore relevant discussions, resources, and critique within a specific discipline.
+
+### Creative Profiles
+
+Profiles are meant to represent a user’s creative presence, activity, contributions, and reputation inside the community.
+
+### Discovery
+
+Search, tags, filters, and post types help users find useful discussions, critiques, resources, and answers instead of getting lost in a general feed.
+
+## Product Principles
+
+Atelier is guided by a few core principles:
+
+- Clarity over clutter
+- Meaningful critique over shallow reactions
+- Community learning over isolated posting
+- Creative identity over anonymous activity
+- Structure over randomness
+- Quality participation over content volume
+- Helpful moderation over unrestricted noise
+
+## Vision
+
+Atelier aims to become a premium creative-professional community where people do not just consume inspiration, but actively improve their thinking, work, and creative confidence.
+
+It should feel like a serious creative workspace: calm, useful, visually refined, and built around the belief that good feedback can transform both the work and the person making it.
+
+## Status
+
+Atelier is currently in development.
+
+The product direction is being shaped around a community-first design platform with strong emphasis on critique, discussion, discovery, and creative identity.
