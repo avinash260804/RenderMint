@@ -16,7 +16,7 @@ This map connects all notes related to Atelier's critique space: philosophy, pro
 
 ## Critique Philosophy
 
-- [[Critique Philosophy]]
+- [[Critique V1]]
 - [[Why Critique Is Different From Forum]]
 - [[Quality Feedback Rules]]
 - [[Creative Improvement Loop]]
