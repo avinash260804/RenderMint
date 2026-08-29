@@ -173,15 +173,15 @@ Only after the earlier phases are stable should UI implementation begin. By this
 
 ## Recommended operating order
 
-| Phase | Focus | Output |
-|---|---|---|
-| 0 | Framework integration | Space-aware product architecture. [cite:14][cite:16] |
-| 1 | Space behavior | One operational space pattern, then expansion. [cite:14][cite:25][cite:27] |
-| 2 | Supporting systems | Onboarding, profile, creation, dashboard continuity. [cite:22][cite:23] |
-| 3 | Cross-space coherence | Journey architecture and transitions. [cite:14][cite:18] |
-| 4 | Trust and progression | Reputation, quality, thresholds, and credibility logic. [cite:29] |
-| 5 | Pre-UI translation | Screen/state/component implementation map. [cite:19][cite:33] |
-| 6 | UI implementation | Interface realization of stable product logic. [cite:19] |
+| Phase | Focus                 | Output                                                                     |
+| ----- | --------------------- | -------------------------------------------------------------------------- |
+| 0     | Framework integration | Space-aware product architecture. [cite:14][cite:16]                       |
+| 1     | Space behavior        | One operational space pattern, then expansion. [cite:14][cite:25][cite:27] |
+| 2     | Supporting systems    | Onboarding, profile, creation, dashboard continuity. [cite:22][cite:23]    |
+| 3     | Cross-space coherence | Journey architecture and transitions. [cite:14][cite:18]                   |
+| 4     | Trust and progression | Reputation, quality, thresholds, and credibility logic. [cite:29]          |
+| 5     | Pre-UI translation    | Screen/state/component implementation map. [cite:19][cite:33]              |
+| 6     | UI implementation     | Interface realization of stable product logic. [cite:19]                   |
 
 ## Implementation guidance
 
