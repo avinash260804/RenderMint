@@ -25,12 +25,12 @@ So instead: **four people, four permanent lenses, all four active in every phase
 
 ## The four roles
 
-| Designation | Core question they own | Note |
-|---|---|---|
-| **R&D Lead** — *Head of Research & Behavioral Design* | "Is this true to what Atelier is supposed to be?" | [[01-RnD-Lead]] |
-| **Technical Lead** — *Head of Engineering & Architecture* | "Can we build this, and will it hold up?" | [[02-Technical-Lead]] |
+| Designation                                                            | Core question they own                                          | Note                           |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------ |
+| **R&D Lead** — *Head of Research & Behavioral Design*                  | "Is this true to what Atelier is supposed to be?"               | [[01-RnD-Lead]]                |
+| **Technical Lead** — *Head of Engineering & Architecture*              | "Can we build this, and will it hold up?"                       | [[02-Technical-Lead]]          |
 | **Support & Moderation Lead** — *Trust & Safety / Platform Operations* | "What breaks, gets gamed, or hurts a beginner if we ship this?" | [[03-Support-Moderation-Lead]] |
-| **Management & Idea Lead** — *Product & Vision Lead* | "Does this cohere into one product a newcomer can understand?" | [[04-Management-Idea-Lead]] |
+| **Management & Idea Lead** — *Product & Vision Lead*                   | "Does this cohere into one product a newcomer can understand?"  | [[04-Management-Idea-Lead]]    |
 
 ---
 

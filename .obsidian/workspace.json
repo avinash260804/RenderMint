@@ -11,34 +11,14 @@
             "id": "2f9f9ca80cc354ec",
             "type": "leaf",
             "state": {
-              "type": "canvas",
+              "type": "markdown",
               "state": {
-                "file": "sandbox.canvas",
-                "viewState": {
-                  "x": 99,
-                  "y": -8462.999931884764,
-                  "zoom": 0
-                }
+                "file": "Team structure/Notes for Warlock7 on the ground expectations and my thoughts behind 'my' refinements (delete after reading).md",
+                "mode": "source",
+                "source": false
               },
-              "icon": "lucide-layout-dashboard",
-              "title": "sandbox"
-            }
-          },
-          {
-            "id": "fc5aef119b394b45",
-            "type": "leaf",
-            "state": {
-              "type": "canvas",
-              "state": {
-                "file": "sandbox.canvas",
-                "viewState": {
-                  "x": 99,
-                  "y": -186,
-                  "zoom": 0
-                }
-              },
-              "icon": "lucide-layout-dashboard",
-              "title": "sandbox"
+              "icon": "lucide-file",
+              "title": "Notes for Warlock7 on the ground expectations and my thoughts behind 'my' refinements (delete after reading)"
             }
           }
         ],
@@ -219,8 +199,37 @@
   },
   "active": "fc5aef119b394b45",
   "lastOpenFiles": [
-    "conflict-files-obsidian-git.md",
-    "sandbox.canvas",
+    "Team structure/JINXed refined work split ownership from building pipeline proposal.md",
+    "Team structure/Notes for Warlock7 on the ground expectations and my thoughts behind 'my' refinements (delete after reading).md",
+    "Team structure/JINXed refined Team Structure proposal.md",
+    "Team structure/01-RnD-Lead.md",
+    "Role Structure.canvas",
+    "Team structure/00-Atelier-Team-Structure-MOC.md",
+    "Team structure/Untitled.base",
+    "Team structure/Untitled",
+    "Team structure/04-Management-Idea-Lead.md",
+    "Team structure/02-Technical-Lead.md",
+    "2026-08-28.md",
+    "Research/Critique framwork V1.md",
+    "Research/Ecosystem Framework.md",
+    "Research/Framwork Generation.canvas",
+    "Research/Framework Implementation Strategy Phases.md",
+    "Research/Critique V1.md",
+    "Research/14_MONETIZATION_FUNDING_RESEARCH.md",
+    "Research/13_GROWTH_DISCOVERY_RESEARCH.md",
+    "Research/10_TECHNICAL_ARCHITECTURE_RESEARCH.md",
+    "01_Index/Research Map.md",
+    "01_Index/Security Map.md",
+    "01_Index/UI Map.md",
+    "02_Product Vision/Atelier Principles.md",
+    "04_Brand UI/ATELIER_RESHAPED_ATLANTIS_UI_IMPLEMENTATION_PLAN.md",
+    "Research/Pasted image 20260726132830.png",
+    "Research/WhatsApp Image 2026-07-26 at 12.47.27.jpeg",
+    "Research/Showcase.md",
+    "Research/Section25_Open_Questions_Resolutions for Integrated Framework.md",
+    "Research/Resources.md",
+    "Research/Profile.md",
+    "Research/11_SECURITY_RESEARCH.md",
     "fdggf.md"
   ]
 }
