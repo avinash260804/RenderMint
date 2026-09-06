@@ -11,10 +11,17 @@
             "id": "2f9f9ca80cc354ec",
             "type": "leaf",
             "state": {
-              "type": "empty",
-              "state": {},
-              "icon": "lucide-file",
-              "title": "New tab"
+              "type": "canvas",
+              "state": {
+                "file": "Untitled.canvas",
+                "viewState": {
+                  "x": 0.66668701171875,
+                  "y": 14.66668701171875,
+                  "zoom": 0
+                }
+              },
+              "icon": "lucide-layout-dashboard",
+              "title": "Untitled"
             }
           }
         ]
@@ -193,8 +200,9 @@
       "obsidian-git:Open Git source control": false
     }
   },
-  "active": "8932ab70926b5c09",
+  "active": "2f9f9ca80cc354ec",
   "lastOpenFiles": [
+    "Untitled.canvas",
     "fdggf.md"
   ]
 }
