@@ -13,7 +13,7 @@
             "state": {
               "type": "canvas",
               "state": {
-                "file": "Untitled.canvas",
+                "file": "sandbox.canvas",
                 "viewState": {
                   "x": 0.66668701171875,
                   "y": 14.66668701171875,
@@ -21,7 +21,7 @@
                 }
               },
               "icon": "lucide-layout-dashboard",
-              "title": "Untitled"
+              "title": "sandbox"
             }
           }
         ]
@@ -202,7 +202,7 @@
   },
   "active": "2f9f9ca80cc354ec",
   "lastOpenFiles": [
-    "Untitled.canvas",
+    "sandbox.canvas",
     "fdggf.md"
   ]
 }
