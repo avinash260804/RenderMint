@@ -28,14 +28,17 @@
             "id": "fc5aef119b394b45",
             "type": "leaf",
             "state": {
-              "type": "split-diff-view",
+              "type": "canvas",
               "state": {
-                "aFile": ".obsidian/graph.json",
-                "bFile": ".obsidian/graph.json",
-                "aRef": ""
+                "file": "sandbox.canvas",
+                "viewState": {
+                  "x": 99,
+                  "y": -186,
+                  "zoom": 0
+                }
               },
-              "icon": "diff",
-              "title": "Diff: graph.json  (Working Tree)"
+              "icon": "lucide-layout-dashboard",
+              "title": "sandbox"
             }
           }
         ],
